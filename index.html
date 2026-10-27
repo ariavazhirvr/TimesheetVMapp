@@ -537,7 +537,7 @@ async function syncOfflineQueue() {
   }
 }
 
-// ---------- تشخیص تأخیر (دقیق و با تبدیل تایم‌زون) ----------
+// ---------- تشخیص تأخیر ----------
 function isLate(checkInIso, workDate) {
   if (!app.settings.lateEnabled) return false; 
   if (!checkInIso || !app.settings.startTime) return false;
@@ -568,8 +568,16 @@ function getLateMinutes(checkInIso) {
 function loadSettings() {
   try {
     const s = localStorage.getItem(LS_KEYS.settings);
-    if (s) app.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
-  } catch(e) {}
+    if (s) {
+      const parsed = JSON.parse(s);
+      app.settings = { ...DEFAULT_SETTINGS, ...parsed };
+      if (typeof parsed.lateEnabled === 'undefined') app.settings.lateEnabled = false;
+    } else {
+      app.settings = { ...DEFAULT_SETTINGS };
+    }
+  } catch(e) {
+    app.settings = { ...DEFAULT_SETTINGS };
+  }
 }
 function saveSettingsToLS() { localStorage.setItem(LS_KEYS.settings, JSON.stringify(app.settings)); }
 function applyTheme() {
@@ -596,7 +604,8 @@ function saveSettings() {
   app.settings.startTime = st;
   app.settings.endTime = en;
   app.settings.lateEnabled = lateEnabled;
-  saveSettingsToLS();
+  
+  saveSettingsToLS(); // ذخیره تنظیمات
 
   localStorage.setItem(LS_KEYS.theme, dark ? 'dark' : 'light');
   applyTheme();
