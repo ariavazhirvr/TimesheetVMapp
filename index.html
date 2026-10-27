@@ -10,6 +10,13 @@
 <title>سیستم ورود و خروج پرسنل</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- پلاگین‌های تقویم شمسی -->
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
 <style>
   * { box-sizing: border-box; font-family: Tahoma, sans-serif; }
   :root {
@@ -57,9 +64,10 @@
   .record-content { flex:1; }
   .record-item .meta { font-size:12px; color:var(--muted); margin-top:2px; }
 
-  .action-btns { display:flex; flex-direction:column; gap:4px; }
-  .btn-icon { background:var(--chip-bg); color:var(--chip-text); border:none; border-radius:6px; padding:4px 8px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0; font-weight:bold; }
+  .action-btns { display:flex; flex-direction:row; gap:6px; align-items:center; }
+  .btn-icon { background:var(--chip-bg); color:var(--chip-text); border:none; border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0; font-weight:bold; }
   .btn-icon.del { background:var(--danger-bg); color:#ef4444; }
+  .btn-icon.edit { background:#fef3c7; color:#d97706; }
 
   .total-box { background:var(--total-bg); border-radius:8px; padding:10px; text-align:center; margin-top:8px; font-size:13px; color:var(--text); }
   .total-box strong { color:var(--total-text); }
@@ -135,7 +143,9 @@
   .settings-row input[type="time"] { width:120px; margin:0; }
   .settings-row input[type="checkbox"] { width:auto; margin:0; }
 
-  .archive-badge { background:#6b7280; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
+  /* استایل تقویم شمسی */
+  .datepicker-plot-area { font-family: Tahoma, sans-serif !important; }
+  .datepicker-day-view .table-days td span { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -198,6 +208,22 @@
     <div class="modal-actions">
       <button class="primary" onclick="saveCalendarEdit()">💾 ذخیره</button>
       <button class="danger" onclick="closeCalendarModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال ویرایش پرسنل -->
+<div class="modal-overlay" id="empEditModal">
+  <div class="modal-box">
+    <h3>✏️ ویرایش نام پرسنل</h3>
+    <input type="hidden" id="editEmpId">
+    <label style="font-size:12px; color:var(--muted);">نام و نام خانوادگی</label>
+    <input type="text" id="editEmpName">
+    <label style="font-size:12px; color:var(--muted); margin-top:8px;">شعبه</label>
+    <select id="editEmpBranch"><option value="">بدون شعبه</option></select>
+    <div class="modal-actions">
+      <button class="primary" onclick="saveEmployeeEdit()">💾 ذخیره</button>
+      <button class="danger" onclick="closeEmpEditModal()">انصراف</button>
     </div>
   </div>
 </div>
@@ -372,10 +398,20 @@
 
 <div class="section" id="sec-reports">
   <div class="card">
-    <h2>📊 گزارش ماهانه</h2>
-    <div class="stats" id="monthlyRange"></div>
+    <h2>📊 گزارش ماهانه و سفارشی</h2>
+    
+    <div style="display:flex; gap:6px; margin-bottom:8px;">
+      <div style="flex:1;">
+        <label style="font-size:12px; color:var(--muted);">از تاریخ (شمسی)</label>
+        <input type="text" id="reportStartDate" class="search-input" style="margin:0; direction:ltr; text-align:center; font-family:monospace; font-size:15px;" readonly>
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:12px; color:var(--muted);">تا تاریخ (شمسی)</label>
+        <input type="text" id="reportEndDate" class="search-input" style="margin:0; direction:ltr; text-align:center; font-family:monospace; font-size:15px;" readonly>
+      </div>
+    </div>
 
-    <select id="reportEmpFilter" style="margin-top:10px; background:var(--record-bg); border-color:var(--input-border); font-weight:bold;">
+    <select id="reportEmpFilter" style="margin-top:6px; background:var(--record-bg); border-color:var(--input-border); font-weight:bold;">
       <option value="all">👥 نمایش همه پرسنل</option>
     </select>
 
@@ -387,7 +423,7 @@
     </div>
 
     <div id="reportsList" style="margin-top:12px;"><div class="empty">در حال بارگذاری...</div></div>
-    <div class="total-box">جمع کل ماه (بر اساس فیلتر): <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
+    <div class="total-box">جمع کل (بر اساس فیلتر): <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
   </div>
 </div>
 
@@ -412,6 +448,10 @@ const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00', lateEnabled: fa
 
 const app = { ready:false, db:null, branches:[], employees:[], settings:{...DEFAULT_SETTINGS}, channel:null };
 
+// متغیرهای سراسری برای بازه گزارش
+window._reportStartDate = null;
+window._reportEndDate = null;
+
 // ---------- Toast ----------
 function toast(msg, type='info', duration=2800) {
   const c = document.getElementById('toastContainer');
@@ -421,6 +461,15 @@ function toast(msg, type='info', duration=2800) {
   el.textContent = msg;
   c.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// تبدیل اعداد فارسی و عربی به انگلیسی
+function toEnNum(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .trim();
 }
 
 // ---------- توابع کمکی زمان و تاریخ ----------
@@ -468,7 +517,6 @@ function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 
-// تبدیل زمان‌ها برای نمایش (تبدیل UTC به وقت ایران به صورت ۲۴ ساعته)
 function timeFa(dateStr){ 
   if (!dateStr) return '---';
   return new Date(dateStr).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit', hour12: false}); 
@@ -605,7 +653,7 @@ function saveSettings() {
   app.settings.endTime = en;
   app.settings.lateEnabled = lateEnabled;
   
-  saveSettingsToLS(); // ذخیره تنظیمات
+  saveSettingsToLS();
 
   localStorage.setItem(LS_KEYS.theme, dark ? 'dark' : 'light');
   applyTheme();
@@ -730,6 +778,80 @@ async function initApp(){
       setBoot('❌ خطا در بارگذاری: ' + err.message, true);
     }
   }
+  
+  // ========== راه‌اندازی تقویم شمسی با اعداد انگلیسی ==========
+  if (typeof jQuery !== 'undefined' && jQuery.fn.persianDatepicker) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    // تنظیمات مشترک برای هر دو تاریخ‌پیکر
+    const commonOptions = {
+      format: 'YYYY/MM/DD',
+      initialValue: false,
+      autoClose: true,
+      calendar: {
+        persian: {
+          locale: 'en'   // ← اعداد انگلیسی
+        }
+      },
+      formatter: function(unix) {
+        // همیشه اعداد لاتین برمی‌گرداند
+        const pd = new persianDate(unix);
+        return pd.toLocale('en').format('YYYY/MM/DD');
+      },
+      onSelect: function(unix) {
+        // این تابع در هر دو اینستنس جداگانه override می‌شود
+      }
+    };
+
+    // تاریخ شروع
+    $('#reportStartDate').persianDatepicker({
+      ...commonOptions,
+      onSelect: function(unix) {
+        if (unix) {
+          window._reportStartDate = new Date(unix);
+          loadReports();
+        }
+      }
+    });
+
+    // تاریخ پایان
+    $('#reportEndDate').persianDatepicker({
+      ...commonOptions,
+      onSelect: function(unix) {
+        if (unix) {
+          window._reportEndDate = new Date(unix);
+          loadReports();
+        }
+      }
+    });
+
+    // مقداردهی اولیه با تاریخ‌های میلادی جاری
+    const startPd = new persianDate(startOfMonth);
+    const endPd = new persianDate(endOfMonth);
+    
+    $('#reportStartDate').val(startPd.toLocale('en').format('YYYY/MM/DD'));
+    $('#reportEndDate').val(endPd.toLocale('en').format('YYYY/MM/DD'));
+
+    // ست کردن متغیرهای سراسری
+    window._reportStartDate = startOfMonth;
+    window._reportEndDate = endOfMonth;
+
+    // ست کردن تاریخ اولیه در خود پیکر (برای اینکه انتخاب‌شده نشان داده شود)
+    try {
+      const startPicker = $('#reportStartDate').data('datepicker');
+      const endPicker = $('#reportEndDate').data('datepicker');
+      if (startPicker) startPicker.setDate(startOfMonth.getTime());
+      if (endPicker) endPicker.setDate(endOfMonth.getTime());
+    } catch(e) {}
+  } else {
+    console.warn('persianDatepicker در دسترس نیست');
+    const now = new Date();
+    window._reportStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    window._reportEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
   setupRealtime();
   app.ready = true;
   if (navigator.onLine) setBoot('✅ آماده است');
@@ -758,12 +880,10 @@ function setupRealtime() {
 function restoreSelections() {
   const empId = localStorage.getItem(LS_KEYS.emp);
   const branchId = localStorage.getItem(LS_KEYS.branch);
-  const reportEmp = localStorage.getItem(LS_KEYS.reportEmp);
   const todayBranch = localStorage.getItem(LS_KEYS.todayBranch);
   const setSel = (id, val) => { const s = document.getElementById(id); if (s && val && [...s.options].some(o => o.value === val)) s.value = val; };
   setSel('empSelect', empId);
   setSel('branchSelect', branchId);
-  setSel('reportEmpFilter', reportEmp);
   setSel('todayBranchFilter', todayBranch);
 }
 
@@ -984,6 +1104,9 @@ function fillBranchSelects(){
   const s1 = document.getElementById('branchSelect'), s2 = document.getElementById('newEmpBranch');
   if (s1) s1.innerHTML = opts;
   if (s2) s2.innerHTML = '<option value="">شعبه (اختیاری)...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  
+  const s3 = document.getElementById('editEmpBranch');
+  if (s3) s3.innerHTML = '<option value="">بدون شعبه</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 }
 function fillTodayBranchFilter() {
   const sel = document.getElementById('todayBranchFilter');
@@ -1018,7 +1141,15 @@ function renderEmployees(){
   const el = document.getElementById('employeesList');
   if (!el) return;
   if (!app.employees.length){ el.innerHTML = '<div class="empty">پرسنلی تعریف نشده</div>'; return; }
-  el.innerHTML = app.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">غیرفعال</button></div>`).join('');
+  el.innerHTML = app.employees.map(e => `
+    <div class="branch-item">
+      <span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-icon edit" onclick="openEmpEditModal(${e.id})">✏️ ویرایش</button>
+        <button class="danger small" onclick="deleteEmployee(${e.id})">غیرفعال</button>
+      </div>
+    </div>
+  `).join('');
 }
 window.deleteEmployee = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
@@ -1027,6 +1158,36 @@ window.deleteEmployee = async function(id){
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
   toast('پرسنل غیرفعال شد (سوابق حفظ شد)', 'success');
+};
+
+window.openEmpEditModal = function(id) {
+  const emp = app.employees.find(e => e.id === id);
+  if (!emp) return;
+  document.getElementById('editEmpId').value = emp.id;
+  document.getElementById('editEmpName').value = emp.name;
+  document.getElementById('editEmpBranch').value = emp.branch_id || '';
+  document.getElementById('empEditModal').classList.add('active');
+};
+window.closeEmpEditModal = function() {
+  document.getElementById('empEditModal').classList.remove('active');
+};
+window.saveEmployeeEdit = async function() {
+  const id = document.getElementById('editEmpId').value;
+  const name = document.getElementById('editEmpName').value.trim();
+  const branchId = document.getElementById('editEmpBranch').value || null;
+  if (!name) return toast('نام را وارد کنید', 'error');
+  if (!navigator.onLine) return toast('برای ویرایش نیاز به اینترنت دارید', 'error');
+
+  try {
+    const { error } = await app.db.from('employees').update({ name, branch_id: branchId }).eq('id', id);
+    if (error) throw error;
+    closeEmpEditModal();
+    toast('اطلاعات پرسنل ویرایش شد', 'success');
+    await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
+    if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
+  } catch (err) {
+    toast('خطا: ' + err.message, 'error');
+  }
 };
 
 function fillEmpSelect(){
@@ -1204,27 +1365,62 @@ async function loadTodayRecords(){
   }
 }
 
-// ---------- Reports ----------
+// ---------- Reports (نسخه اصلاح‌شده) ----------
 async function loadReports(){
   const el = document.getElementById('reportsList');
   if (!el) return;
   if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
   el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
 
-  const filterEmpId = document.getElementById('reportEmpFilter').value;
+  const filterEmpId = document.getElementById('reportEmpFilter').value || 'all';
   const searchQ = (document.getElementById('reportSearch')?.value || '').trim().toLowerCase();
 
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
-  document.getElementById('monthlyRange').textContent = `بازه: ${toJalaliShort(start)} تا ${toJalaliShort(new Date(end-1))}`;
+  // استفاده از متغیرهای سراسری
+  let startDate = window._reportStartDate;
+  let endDate = window._reportEndDate;
 
-  let query = app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)).order('id', { ascending:false });
+  // اگر متغیرها مشکل داشتند، از مقدار اینپوت پارس کن
+  if (!startDate || !(startDate instanceof Date) || isNaN(startDate.getTime())) {
+    const val = toEnNum(document.getElementById('reportStartDate').value);
+    if (val && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(val)) {
+      const [jy, jm, jd] = val.split('/').map(Number);
+      startDate = getGregorianFromJalali(jy, jm, jd);
+    } else {
+      const now = new Date();
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+  }
+  if (!endDate || !(endDate instanceof Date) || isNaN(endDate.getTime())) {
+    const val = toEnNum(document.getElementById('reportEndDate').value);
+    if (val && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(val)) {
+      const [jy, jm, jd] = val.split('/').map(Number);
+      endDate = getGregorianFromJalali(jy, jm, jd);
+    } else {
+      const now = new Date();
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+  }
+
+  // اگر بازه معکوس بود، اصلاح کن
+  if (startDate.getTime() > endDate.getTime()) {
+    const tmp = startDate;
+    startDate = endDate;
+    endDate = tmp;
+  }
+
+  const startStr = getLocalDateStr(startDate);
+  const endStr = getLocalDateStr(endDate);
+
+  console.log('[Reports] بازه میلادی:', startStr, '→', endStr);
+
+  let query = app.db.from('attendance').select('*').gte('work_date', startStr).lte('work_date', endStr).order('id', { ascending:false });
   if (filterEmpId !== 'all') query = query.eq('employee_id', Number(filterEmpId));
 
   try {
     const { data: attData, error } = await query;
     if (error) throw error;
+
+    console.log('[Reports] تعداد رکورد دریافتی:', (attData || []).length);
 
     const [empMap, brMap] = await Promise.all([
       getEmpNameMap((attData||[]).map(r => r.employee_id)),
@@ -1280,6 +1476,7 @@ async function loadReports(){
     document.getElementById('monthlyTotalH').textContent = faNum(g.h);
     document.getElementById('monthlyTotalM').textContent = faNum(g.m);
   } catch (err) {
+    console.error('[Reports] خطا:', err);
     el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
   }
 }
@@ -1354,56 +1551,89 @@ window.exportToExcel = async function() {
   const emp = app.employees.find(e => e.id.toString() === filterEmpId.toString());
   if (!emp) return toast('پرسنل یافت نشد', 'error');
 
-  try {
-    const now = new Date();
-    const year = now.getFullYear(), month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const start = new Date(year, month, 1), end = new Date(year, month + 1, 1);
+  let startDate = window._reportStartDate;
+  let endDate = window._reportEndDate;
+  if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return toast('بازه تاریخ نامعتبر است', 'error');
+  }
 
-    const { data: attData, error } = await app.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
+  const startStr = getLocalDateStr(startDate);
+  const endStr = getLocalDateStr(endDate);
+  const startJStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year:'numeric', month:'2-digit', day:'2-digit' }).format(startDate);
+  const endJStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year:'numeric', month:'2-digit', day:'2-digit' }).format(endDate);
+
+  try {
+    const { data: attData, error } = await app.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr).order('work_date', { ascending: true });
     if (error) throw error;
 
     const brMap = await getBranchNameMap(attData.map(r => r.branch_id));
-    const recordsByDay = {};
-    (attData || []).forEach(r => {
-      const jStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(r.work_date));
-      recordsByDay[jStr] = r;
-    });
+    
+    const latinFaNum = (str) => String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
 
-    const wsData = [["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]];
-    let jDate = "";
-    for (let i = 1; i <= daysInMonth; i++) {
-      const d = new Date(year, month, i);
-      const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
-      jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const wsData = [
+      ["گزارش تردد پرسنل"],
+      ["نام پرسنل:", emp.name],
+      ["بازه گزارش:", `${startJStr} تا ${endJStr}`],
+      [],
+      ["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]
+    ];
+    
+    let totalMinutes = 0;
+    
+    let current = new Date(startStr);
+    const endDateObj = new Date(endStr);
+    
+    while (current <= endDateObj) {
+      const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(current);
+      const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(current);
+      const gDateStr = getLocalDateStr(current);
+      
       let inT = "", outT = "", workTime = "", notes = "", lateStr = "";
-      const rec = recordsByDay[jDate];
+      const rec = attData.find(r => r.work_date === gDateStr);
+      
       if (rec) {
-        if (rec.status === 'leave') { notes = "مرخصی"; }
-        else {
-          if (rec.check_in) inT = timeFa(rec.check_in);
-          if (rec.check_out) outT = timeFa(rec.check_out);
+        if (rec.status === 'leave') {
+          notes = "مرخصی";
+        } else {
+          if (rec.check_in) inT = latinFaNum(timeFa(rec.check_in));
+          if (rec.check_out) outT = latinFaNum(timeFa(rec.check_out));
           if (rec.check_in && rec.check_out) {
             const diffMins = minutesBetween(rec.check_in, rec.check_out);
+            totalMinutes += diffMins;
             workTime = `${String(Math.floor(diffMins/60)).padStart(2,'0')}:${String(diffMins%60).padStart(2,'0')}`;
           }
           if (rec.check_in && isLate(rec.check_in)) lateStr = `${getLateMinutes(rec.check_in)} دقیقه`;
           const bName = brMap.get(rec.branch_id); if (bName) notes = `شعبه: ${bName}`;
         }
       }
-      wsData.push([dayName, jDate, inT, outT, workTime, lateStr, notes]);
+      wsData.push([dayName, latinFaNum(jDate), inT, outT, workTime, lateStr, notes]);
+      current.setDate(current.getDate() + 1);
     }
-    downloadWorkbook(wsData, emp.name, jDate);
+    
+    const thm = minutesToHM(totalMinutes);
+    wsData.push([]);
+    wsData.push(["", "جمع کل", "", "", `${String(thm.h).padStart(2,'0')}:${String(thm.m).padStart(2,'0')}`, "", ""]);
+    
+    downloadWorkbook(wsData, emp.name, `${startJStr}_${endJStr}`);
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 };
 
 window.exportAllEmployees = async function() {
   if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
+  
+  let startDate = window._reportStartDate;
+  let endDate = window._reportEndDate;
+  if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return toast('بازه تاریخ نامعتبر است', 'error');
+  }
+
+  const startStr = getLocalDateStr(startDate);
+  const endStr = getLocalDateStr(endDate);
+  const startJStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year:'numeric', month:'2-digit', day:'2-digit' }).format(startDate);
+  const endJStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year:'numeric', month:'2-digit', day:'2-digit' }).format(endDate);
+
   try {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
-    const { data: attData, error } = await app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
+    const { data: attData, error } = await app.db.from('attendance').select('*').gte('work_date', startStr).lte('work_date', endStr);
     if (error) throw error;
 
     const [empMap, brMap] = await Promise.all([
@@ -1411,23 +1641,43 @@ window.exportAllEmployees = async function() {
       getBranchNameMap((attData||[]).map(r => r.branch_id))
     ]);
 
-    const wsData = [["پرسنل", "شعبه", "تاریخ", "روز", "ورود", "خروج", "کارکرد", "وضعیت"]];
-    (attData || []).forEach(r => {
+    const wsData = [
+      ["گزارش تردد همه پرسنل"],
+      ["بازه گزارش:", `${startJStr} تا ${endJStr}`],
+      [],
+      ["پرسنل", "شعبه", "تاریخ", "روز", "ورود", "خروج", "کارکرد", "وضعیت"]
+    ];
+
+    let grandTotalMins = 0;
+    const latinFaNum = (str) => String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+    const sortedData = [...(attData || [])].sort((a,b) => {
+      if (a.employee_id !== b.employee_id) return a.employee_id - b.employee_id;
+      return a.work_date.localeCompare(b.work_date);
+    });
+
+    sortedData.forEach(r => {
       const d = new Date(r.work_date);
       const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
       const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
       let inT = "", outT = "", workTime = "", status = "حاضر";
+      
       if (r.status === 'leave') status = "مرخصی";
       else {
-        if (r.check_in) inT = timeFa(r.check_in);
-        if (r.check_out) outT = timeFa(r.check_out);
+        if (r.check_in) inT = latinFaNum(timeFa(r.check_in));
+        if (r.check_out) outT = latinFaNum(timeFa(r.check_out));
         if (r.check_in && r.check_out) {
           const m = minutesBetween(r.check_in, r.check_out);
+          grandTotalMins += m;
           workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
         }
       }
-      wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
+      wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', latinFaNum(jDate), dayName, inT, outT, workTime, status]);
     });
+
+    const gHm = minutesToHM(grandTotalMins);
+    wsData.push([]);
+    wsData.push(["", "", "", "جمع کل", "", "", `${String(gHm.h).padStart(2,'0')}:${String(gHm.m).padStart(2,'0')}`, ""]);
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -1435,7 +1685,7 @@ window.exportAllEmployees = async function() {
     XLSX.utils.book_append_sheet(wb, ws, 'همه پرسنل');
     const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
-    triggerDownload(blob, `گزارش_کل_${new Date().toISOString().slice(0,10)}.xlsx`);
+    triggerDownload(blob, `گزارش_کل_${startJStr}_${endJStr}.xlsx`);
     toast('فایل دانلود شد', 'success');
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 };
@@ -1445,7 +1695,7 @@ function downloadWorkbook(wsData, sheetName, jDate) {
     if (typeof XLSX !== 'undefined') {
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}];
+      ws['!cols'] = [{wch:15},{wch:15},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}];
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
       const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
       const blob = new Blob([wbout], { type: 'application/octet-stream' });
