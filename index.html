@@ -384,54 +384,53 @@
     <div class="total-box">جمع کل ماه (بر اساس فیلتر): <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
   </div>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://fvuxccwxmvdtsfdavmyx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2dXhjY3d4bXZkdHNmZGF2bXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3ODI4NjIsImV4cCI6MjEwODM1ODg2Mn0.m397fvHBUaGmRRXJhaXlveYW5Yr-vpkmGr9MywqWut4';
 
 const LS_KEYS = {
-  emp: 'timesheet_last_emp',
-  branch: 'timesheet_last_branch',
-  reportEmp: 'timesheet_last_report_emp',
-  todayBranch: 'timesheet_today_branch',
-  settings: 'timesheet_settings',
-  pinEnabled: 'timesheet_pin_enabled',
-  pinHash: 'timesheet_pin_hash',
-  auth: 'timesheet_auth_session',
-  theme: 'timesheet_theme',
-  offlineQueue: 'timesheet_offline_queue'
+  emp: 'timesheet_last_emp', branch: 'timesheet_last_branch', reportEmp: 'timesheet_last_report_emp',
+  todayBranch: 'timesheet_today_branch', settings: 'timesheet_settings', pinEnabled: 'timesheet_pin_enabled',
+  pinHash: 'timesheet_pin_hash', auth: 'timesheet_auth_session', theme: 'timesheet_theme', offlineQueue: 'timesheet_offline_queue'
 };
 
 const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00' };
-
 const app = { ready:false, db:null, branches:[], employees:[], settings:{...DEFAULT_SETTINGS}, channel:null };
 
-// ---------- Toast ----------
-function toast(msg, type='info', duration=2800) {
-  const c = document.getElementById('toastContainer');
-  if (!c) return;
-  const el = document.createElement('div');
-  el.className = 'toast ' + type;
-  el.textContent = msg;
-  c.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+function getTimeParts(localIsoString) {
+  if (!localIsoString) return { str: '---', mins: 0 };
+  const timePart = localIsoString.split('T')[1];
+  if (!timePart) return { str: '---', mins: 0 };
+  const [h, m] = timePart.split(':').map(Number);
+  return { str: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, mins: (h*60)+m };
 }
 
-// ---------- تاریخ ----------
-function getLocalDateStr(d = new Date()) {
+function getNowLocalIso() {
+  const d = new Date();
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  const mo = String(d.getMonth()+1).padStart(2,'0');
+  const da = String(d.getDate()).padStart(2,'0');
+  const h = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  const s = String(d.getSeconds()).padStart(2,'0');
+  return `${y}-${mo}-${da}T${h}:${mi}:${s}`;
+}
+
+function toast(msg, type='info', duration=2800) {
+  const c = document.getElementById('toastContainer'); if (!c) return;
+  const el = document.createElement('div'); el.className = 'toast ' + type; el.textContent = msg;
+  c.appendChild(el); setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+}
+
+function getLocalDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function getJalaliParts(date) {
-  const jStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
-  const parts = jStr.split('/');
+  const parts = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date).split('/');
   return { year: parseInt(parts[0]), month: parseInt(parts[1]), day: parseInt(parts[2]) };
 }
 function getGregorianFromJalali(jy, jm, jd) {
-  let baseYear = jy + 621;
-  let startOfYear = null;
+  let baseYear = jy + 621, startOfYear = null;
   for (let testYear = baseYear; testYear <= baseYear + 1 && !startOfYear; testYear++) {
     for (let d = 19; d <= 22; d++) {
       const testDate = new Date(Date.UTC(testYear, 2, d, 12, 0, 0));
@@ -456,17 +455,14 @@ function getJalaliMonthRangeGregorian(jy, jm) {
   return { start: getGregorianFromJalali(jy, jm, 1), end: getGregorianFromJalali(jy, jm, days) };
 }
 
-// ---------- نمایش ----------
 function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
-function timeFa(d){ return new Date(d).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}); }
-function minutesBetween(a,b){ return Math.round((new Date(b)-new Date(a))/60000); }
 function minutesToHM(m){ return { h: Math.floor(m/60), m: Math.round(m%60) }; }
-function getTimeForInput(isoString) {
-  if (!isoString) return '';
-  const d = new Date(isoString);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+function getTimeForInput(localIsoString) {
+  if (!localIsoString) return '';
+  const parts = getTimeParts(localIsoString);
+  return parts.str === '---' ? '' : parts.str;
 }
 function setBoot(msg, isError){
   const el = document.getElementById('bootMsg');
@@ -486,16 +482,10 @@ function updateClock(){
 setInterval(updateClock, 1000);
 updateClock();
 
-// ---------- مدیریت آفلاین ----------
 function updateOnlineStatus() {
   const banner = document.getElementById('offlineBanner');
   if (!banner) return;
-  if (navigator.onLine) {
-    banner.style.display = 'none';
-    syncOfflineQueue(); 
-  } else {
-    banner.style.display = 'block';
-  }
+  if (navigator.onLine) { banner.style.display = 'none'; syncOfflineQueue(); } else { banner.style.display = 'block'; }
   loadTodayRecords(); 
 }
 window.addEventListener('online', updateOnlineStatus);
@@ -506,13 +496,11 @@ async function syncOfflineQueue() {
   if (!app.db || !app.ready) return;
   const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
   if (!queue.length) return;
-
   let successCount = 0;
   for (const item of queue) {
     const { error } = await app.db.from('attendance').insert(item);
     if (!error) successCount++;
   }
-
   if (successCount > 0) {
     localStorage.setItem(LS_KEYS.offlineQueue, '[]'); 
     toast(`✅ ${successCount} رکورد آفلاین به سرور ارسال شد.`, 'success', 4000);
@@ -520,37 +508,21 @@ async function syncOfflineQueue() {
   }
 }
 
-// ---------- تشخیص تأخیر (اصلاح نهایی باگ) ----------
-// این تابع دقیقا ساعت محلی (وقت ایران) رو بررسی میکنه نه ساعت جهانی
-function isLate(checkInIso) {
-  if (!checkInIso || !app.settings.startTime) return false;
-  
-  const d = new Date(checkInIso);
-  const hours = d.getHours(); // ساعت محلی گوشی
-  const minutes = d.getMinutes(); // دقیقه محلی گوشی
-  
+function isLate(checkInStr) {
+  if (!checkInStr || !app.settings.startTime) return false;
+  const inMins = getTimeParts(checkInStr).mins;
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
-  const startMinutes = sh * 60 + sm;
-  const actualMinutes = hours * 60 + minutes;
-  
-  return actualMinutes > startMinutes + 5;
+  const startMins = (sh * 60) + sm;
+  return inMins > startMins + 5;
+}
+function getLateMinutes(checkInStr) {
+  if (!checkInStr) return 0;
+  const inMins = getTimeParts(checkInStr).mins;
+  const [sh, sm] = app.settings.startTime.split(':').map(Number);
+  const startMins = (sh * 60) + sm;
+  return Math.max(0, inMins - startMins);
 }
 
-function getLateMinutes(checkInIso) {
-  if (!checkInIso) return 0;
-  
-  const d = new Date(checkInIso);
-  const hours = d.getHours();
-  const minutes = d.getMinutes();
-  
-  const [sh, sm] = app.settings.startTime.split(':').map(Number);
-  const startMinutes = sh * 60 + sm;
-  const actualMinutes = hours * 60 + minutes;
-  
-  return Math.max(0, actualMinutes - startMinutes);
-}
-
-// ---------- تنظیمات ----------
 function loadSettings() {
   try {
     const s = localStorage.getItem(LS_KEYS.settings);
@@ -592,33 +564,26 @@ function saveSettings() {
   }
   document.getElementById('settingsModal').classList.remove('active');
   toast('تنظیمات ذخیره شد', 'success');
-  loadTodayRecords(); // رفرش لیست برای اعمال تغییرات ساعت
+  loadTodayRecords();
 }
 
-// ---------- PIN / Auth ----------
 let pinBuffer = '';
 let pinResolve = null;
-
 function requirePin() {
   const enabled = localStorage.getItem(LS_KEYS.pinEnabled) === 'true';
   const pinHash = localStorage.getItem(LS_KEYS.pinHash);
   if (!enabled || !pinHash) return Promise.resolve(true);
   if (localStorage.getItem(LS_KEYS.auth) === 'yes') return Promise.resolve(true);
-
   return new Promise((resolve) => {
-    pinBuffer = '';
-    pinResolve = resolve;
-    updatePinDots();
+    pinBuffer = ''; pinResolve = resolve; updatePinDots();
     document.getElementById('pinScreen').classList.add('active');
   });
 }
-
 function updatePinDots() {
   const dots = document.querySelectorAll('#pinDots .pin-dot');
   dots.forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
   document.getElementById('pinError').textContent = '';
 }
-
 document.querySelectorAll('.pin-keys button').forEach(btn => {
   btn.addEventListener('click', () => {
     const val = btn.dataset.val;
@@ -626,7 +591,6 @@ document.querySelectorAll('.pin-keys button').forEach(btn => {
     else if (val === 'del') { pinBuffer = pinBuffer.slice(0, -1); }
     else if (pinBuffer.length < 4) { pinBuffer += val; }
     updatePinDots();
-
     if (pinBuffer.length === 4) {
       const stored = localStorage.getItem(LS_KEYS.pinHash);
       if (btoa(pinBuffer) === stored) {
@@ -635,27 +599,21 @@ document.querySelectorAll('.pin-keys button').forEach(btn => {
         if (pinResolve) { pinResolve(true); pinResolve = null; }
       } else {
         document.getElementById('pinError').textContent = '❌ PIN اشتباه است';
-        pinBuffer = '';
-        setTimeout(updatePinDots, 500);
+        pinBuffer = ''; setTimeout(updatePinDots, 500);
       }
     }
   });
 });
-
 function logout() {
-  if (!confirm('از سیستم خارج می‌شوید؟ (برای ورود مجدد به PIN نیاز دارید)')) return;
-  localStorage.removeItem(LS_KEYS.auth);
-  location.reload();
+  if (!confirm('از سیستم خارج می‌شوید؟')) return;
+  localStorage.removeItem(LS_KEYS.auth); location.reload();
 }
 
-// ---------- Tabs ----------
 function setupTabs(){
-  const tabs = document.querySelectorAll('.tab');
-  const secs = document.querySelectorAll('.section');
+  const tabs = document.querySelectorAll('.tab'); const secs = document.querySelectorAll('.section');
   tabs.forEach(t => {
     t.addEventListener('click', () => {
-      tabs.forEach(x => x.classList.remove('active'));
-      secs.forEach(x => x.classList.remove('active'));
+      tabs.forEach(x => x.classList.remove('active')); secs.forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       const s = document.getElementById('sec-' + t.dataset.tab);
       if (s) s.classList.add('active');
@@ -670,39 +628,22 @@ function setupTabs(){
   });
 }
 
-// ---------- Init ----------
 async function initApp(){
-  if (typeof supabase === 'undefined' || !supabase.createClient) {
-    setBoot('⚠️ کتابخانه Supabase لود نشد.', true); return;
-  }
-  if (typeof XLSX === 'undefined') {
-    setBoot('⚠️ کتابخانه اکسل لود نشد. دکمه دانلود از روش CSV استفاده می‌کند.', true);
-  }
-  try {
-    app.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch(e){
-    setBoot('⚠️ خطا اتصال Supabase: ' + e.message, true); return;
-  }
+  if (typeof supabase === 'undefined' || !supabase.createClient) { setBoot('⚠️ کتابخانه Supabase لود نشد.', true); return; }
+  if (typeof XLSX === 'undefined') { setBoot('⚠️ کتابخانه اکسل لود نشد. دکمه دانلود از روش CSV استفاده می‌کند.', true); }
+  try { app.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){ setBoot('⚠️ خطا اتصال Supabase: ' + e.message, true); return; }
 
   if (!navigator.onLine) {
     setBoot('📴 شما آفلاین هستید. ورود در گوشی ذخیره می‌شود.', true);
   } else {
     try {
-      await loadBranches();
-      await loadEmployees();
-      fillEmpSelect();
-      fillReportFilter();
-      fillCalEmpSelect();
-      fillTodayBranchFilter();
+      await loadBranches(); await loadEmployees();
+      fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); fillTodayBranchFilter();
       restoreSelections();
       await loadTodayRecords();
-    } catch (err) {
-      console.error(err);
-      setBoot('❌ خطا در بارگذاری: ' + err.message, true);
-    }
+    } catch (err) { console.error(err); setBoot('❌ خطا در بارگذاری: ' + err.message, true); }
   }
-  setupRealtime();
-  app.ready = true;
+  setupRealtime(); app.ready = true;
   if (navigator.onLine) setBoot('✅ آماده است');
 }
 
@@ -722,20 +663,14 @@ function setupRealtime() {
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'branches' }, () => {
       if (navigator.onLine) loadBranches();
-    })
-    .subscribe();
+    }).subscribe();
 }
 
 function restoreSelections() {
-  const empId = localStorage.getItem(LS_KEYS.emp);
-  const branchId = localStorage.getItem(LS_KEYS.branch);
-  const reportEmp = localStorage.getItem(LS_KEYS.reportEmp);
-  const todayBranch = localStorage.getItem(LS_KEYS.todayBranch);
+  const empId = localStorage.getItem(LS_KEYS.emp); const branchId = localStorage.getItem(LS_KEYS.branch);
+  const reportEmp = localStorage.getItem(LS_KEYS.reportEmp); const todayBranch = localStorage.getItem(LS_KEYS.todayBranch);
   const setSel = (id, val) => { const s = document.getElementById(id); if (s && val && [...s.options].some(o => o.value === val)) s.value = val; };
-  setSel('empSelect', empId);
-  setSel('branchSelect', branchId);
-  setSel('reportEmpFilter', reportEmp);
-  setSel('todayBranchFilter', todayBranch);
+  setSel('empSelect', empId); setSel('branchSelect', branchId); setSel('reportEmpFilter', reportEmp); setSel('todayBranchFilter', todayBranch);
 }
 
 async function getEmpNameMap(ids){
@@ -751,20 +686,16 @@ async function getBranchNameMap(ids){
   return new Map((data || []).map(b => [b.id, b.name]));
 }
 
-// ---------- تقویم ----------
 function fillCalEmpSelect() {
-  const sel = document.getElementById('calEmpSelect');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' +
-    app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
+  const sel = document.getElementById('calEmpSelect'); if (!sel) return;
+  sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
 }
 function initCalendarTab() {
   const yearSelect = document.getElementById('calYearSelect');
   if (!yearSelect.options.length) {
     const currentJYear = getJalaliParts(new Date()).year;
     for (let y = currentJYear - 2; y <= currentJYear + 2; y++) {
-      const opt = document.createElement('option'); opt.value = y; opt.textContent = y;
-      yearSelect.appendChild(opt);
+      const opt = document.createElement('option'); opt.value = y; opt.textContent = y; yearSelect.appendChild(opt);
     }
     yearSelect.value = currentJYear;
   }
@@ -772,161 +703,101 @@ function initCalendarTab() {
   loadCalendar();
 }
 async function loadCalendar() {
-  const el = document.getElementById('calendarList');
-  const summaryEl = document.getElementById('calSummary');
+  const el = document.getElementById('calendarList'); const summaryEl = document.getElementById('calSummary');
   const empId = document.getElementById('calEmpSelect').value;
-  const jm = parseInt(document.getElementById('calMonthSelect').value);
-  const jy = parseInt(document.getElementById('calYearSelect').value);
-
+  const jm = parseInt(document.getElementById('calMonthSelect').value); const jy = parseInt(document.getElementById('calYearSelect').value);
   if (!empId) { el.innerHTML = '<div class="empty">ابتدا پرسنل را انتخاب کنید</div>'; summaryEl.style.display = 'none'; return; }
   if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده تقویم به اینترنت نیاز است.</div>'; summaryEl.style.display = 'none'; return; }
-  
   el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
-
   const emp = app.employees.find(e => e.id.toString() === empId.toString());
   const daysCount = getJalaliMonthDays(jy, jm);
   const { start, end } = getJalaliMonthRangeGregorian(jy, jm);
   const startStr = getLocalDateStr(start), endStr = getLocalDateStr(end);
-
-  const { data: attData, error } = await app.db.from('attendance')
-    .select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr);
-
+  const { data: attData, error } = await app.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr);
   if (error) { el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + error.message + '</div>'; summaryEl.style.display = 'none'; return; }
-
   const recordsByDate = {};
   (attData || []).forEach(r => { if (!recordsByDate[r.work_date]) recordsByDate[r.work_date] = r; });
-
   let totalMins = 0, leaveDays = 0, presentDays = 0;
   (attData || []).forEach(r => {
     if (r.status === 'leave') leaveDays++;
-    else if (r.check_in && r.check_out) { totalMins += minutesBetween(r.check_in, r.check_out); presentDays++; }
+    else if (r.check_in && r.check_out) { totalMins += getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins; presentDays++; }
   });
   const hm = minutesToHM(totalMins);
-  document.getElementById('calSummaryWork').textContent = faNum(hm.h);
-  document.getElementById('calSummaryLeave').textContent = faNum(leaveDays);
-  document.getElementById('calSummaryDays').textContent = faNum(presentDays + leaveDays);
+  document.getElementById('calSummaryWork').textContent = faNum(hm.h); document.getElementById('calSummaryLeave').textContent = faNum(leaveDays); document.getElementById('calSummaryDays').textContent = faNum(presentDays + leaveDays);
   summaryEl.style.display = 'flex';
-
-  const todayStr = getLocalDateStr();
-  let html = '';
+  const todayStr = getLocalDateStr(); let html = '';
   for (let d = 1; d <= daysCount; d++) {
-    const gDate = getGregorianFromJalali(jy, jm, d);
-    const gDateStr = getLocalDateStr(gDate);
+    const gDate = getGregorianFromJalali(jy, jm, d); const gDateStr = getLocalDateStr(gDate);
     const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(gDate);
     const rec = recordsByDate[gDateStr];
-
-    let statusHtml = '<span class="status status-empty">ثبت نشده</span>';
-    let rowClass = 'status-empty';
-
+    let statusHtml = '<span class="status status-empty">ثبت نشده</span>'; let rowClass = 'status-empty';
     if (rec) {
-      if (rec.status === 'leave') {
-        statusHtml = '<span class="status" style="color:#d97706; font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave';
-      } else {
-        const inT = rec.check_in ? timeFa(rec.check_in) : '---';
-        const outT = rec.check_out ? timeFa(rec.check_out) : '---';
+      if (rec.status === 'leave') { statusHtml = '<span class="status" style="color:#d97706; font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave'; }
+      else {
+        const inT = rec.check_in ? getTimeParts(rec.check_in).str : '---'; const outT = rec.check_out ? getTimeParts(rec.check_out).str : '---';
         const late = rec.check_in && isLate(rec.check_in) ? ' <span style="color:#f97316;">(تأخیر)</span>' : '';
         statusHtml = `<span class="status" style="color:#065f46;">ورود: ${inT} | خروج: ${outT}${late}</span>`; rowClass = 'status-present';
       }
     }
-    const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
-    const isToday = gDateStr === todayStr;
+    const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`; const isToday = gDateStr === todayStr;
     html += `<div class="calendar-row ${rowClass} ${isToday ? 'today' : ''}">
-      <div class="day-info">
-        <strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:#3b82f6; font-size:11px;">(امروز)</span>' : ''}</strong>
-        ${statusHtml}
-      </div>
+      <div class="day-info"><strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:#3b82f6; font-size:11px;">(امروز)</span>' : ''}</strong>${statusHtml}</div>
       <button class="btn-icon" style="padding:6px 10px;" onclick="openCalendarEdit('${rec ? rec.id : ''}', '${gDateStr}', '${empId}', '${rec ? rec.check_in : ''}', '${rec ? rec.check_out : ''}', '${rec ? rec.status : ''}', '${dayName} ${dateStr}')">✏️</button>
     </div>`;
   }
   el.innerHTML = html;
 }
 
-window.openCalendarEdit = function(recId, gDateStr, empId, checkInIso, checkOutIso, status, title) {
-  document.getElementById('calRecId').value = recId || '';
-  document.getElementById('calWorkDate').value = gDateStr;
-  document.getElementById('calEmpId').value = empId;
-  document.getElementById('calCheckIn').value = getTimeForInput(checkInIso);
-  document.getElementById('calCheckOut').value = getTimeForInput(checkOutIso);
-  document.getElementById('calIsLeave').checked = (status === 'leave');
-  document.getElementById('calModalTitle').textContent = 'ویرایش ' + title;
-  const emp = app.employees.find(e => e.id.toString() === empId.toString());
-  document.getElementById('calBranchId').value = emp ? emp.branch_id : '';
+window.openCalendarEdit = function(recId, gDateStr, empId, checkInStr, checkOutStr, status, title) {
+  document.getElementById('calRecId').value = recId || ''; document.getElementById('calWorkDate').value = gDateStr; document.getElementById('calEmpId').value = empId;
+  document.getElementById('calCheckIn').value = getTimeForInput(checkInStr); document.getElementById('calCheckOut').value = getTimeForInput(checkOutStr);
+  document.getElementById('calIsLeave').checked = (status === 'leave'); document.getElementById('calModalTitle').textContent = 'ویرایش ' + title;
+  const emp = app.employees.find(e => e.id.toString() === empId.toString()); document.getElementById('calBranchId').value = emp ? emp.branch_id : '';
   document.getElementById('calendarEditModal').classList.add('active');
 };
 window.closeCalendarModal = function() { document.getElementById('calendarEditModal').classList.remove('active'); };
 
 window.saveCalendarEdit = async function() {
-  const recId = document.getElementById('calRecId').value;
-  const workDate = document.getElementById('calWorkDate').value;
-  const empId = document.getElementById('calEmpId').value;
-  const branchId = document.getElementById('calBranchId').value;
-  const isLeave = document.getElementById('calIsLeave').checked;
-  const inVal = document.getElementById('calCheckIn').value;
-  const outVal = document.getElementById('calCheckOut').value;
-
+  const recId = document.getElementById('calRecId').value; const workDate = document.getElementById('calWorkDate').value;
+  const empId = document.getElementById('calEmpId').value; const branchId = document.getElementById('calBranchId').value;
+  const isLeave = document.getElementById('calIsLeave').checked; const inVal = document.getElementById('calCheckIn').value; const outVal = document.getElementById('calCheckOut').value;
   if (!navigator.onLine) return toast('برای ویرایش نیاز به اینترنت دارید', 'error');
-
   let checkIn = null, checkOut = null, status = 'present';
   if (isLeave) { status = 'leave'; }
   else {
-    if (inVal) checkIn = new Date(`${workDate}T${inVal}:00`).toISOString();
-    if (outVal) checkOut = new Date(`${workDate}T${outVal}:00`).toISOString();
-    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
-      toast('ساعت خروج باید بعد از ورود باشد', 'error'); return;
-    }
+    if (inVal) checkIn = `${workDate}T${inVal}:00`;
+    if (outVal) checkOut = `${workDate}T${outVal}:00`;
+    if (checkIn && checkOut && getTimeParts(checkOut).mins <= getTimeParts(checkIn).mins) { toast('ساعت خروج باید بعد از ورود باشد', 'error'); return; }
   }
-
   try {
     if (recId) {
-      const { error } = await app.db.from('attendance').update({ check_in: checkIn, check_out: checkOut, status }).eq('id', recId);
-      if (error) throw error;
+      const { error } = await app.db.from('attendance').update({ check_in: checkIn, check_out: checkOut, status }).eq('id', recId); if (error) throw error;
     } else {
-      const { error } = await app.db.from('attendance').insert({
-        employee_id: Number(empId), branch_id: branchId ? Number(branchId) : null,
-        work_date: workDate, check_in: checkIn, check_out: checkOut, status
-      });
-      if (error) throw error;
+      const { error } = await app.db.from('attendance').insert({ employee_id: Number(empId), branch_id: branchId ? Number(branchId) : null, work_date: workDate, check_in: checkIn, check_out: checkOut, status }); if (error) throw error;
     }
-    closeCalendarModal();
-    toast('ذخیره شد', 'success');
-    loadCalendar();
+    closeCalendarModal(); toast('ذخیره شد', 'success'); loadCalendar();
     if (workDate === getLocalDateStr()) loadTodayRecords();
-  } catch (err) {
-    toast('خطا: ' + err.message, 'error');
-  }
+  } catch (err) { toast('خطا: ' + err.message, 'error'); }
 };
 
-// ---------- Edit / Delete ----------
-window.openEditModal = async function(id, checkInIso, checkOutIso) {
-  document.getElementById('editRecId').value = id;
-  document.getElementById('editCheckIn').value = getTimeForInput(checkInIso);
-  document.getElementById('editCheckOut').value = getTimeForInput(checkOutIso);
-  document.getElementById('editModal').classList.add('active');
+window.openEditModal = async function(id, checkInStr, checkOutStr) {
+  document.getElementById('editRecId').value = id; document.getElementById('editCheckIn').value = getTimeForInput(checkInStr);
+  document.getElementById('editCheckOut').value = getTimeForInput(checkOutStr); document.getElementById('editModal').classList.add('active');
 };
 window.closeEditModal = function() { document.getElementById('editModal').classList.remove('active'); };
 
 window.saveEditTime = async function() {
-  const id = document.getElementById('editRecId').value;
-  const inVal = document.getElementById('editCheckIn').value;
-  const outVal = document.getElementById('editCheckOut').value;
-
+  const id = document.getElementById('editRecId').value; const inVal = document.getElementById('editCheckIn').value; const outVal = document.getElementById('editCheckOut').value;
   if (!navigator.onLine) return toast('برای ویرایش نیاز به اینترنت دارید', 'error');
-
   const { data: rec, error: fetchErr } = await app.db.from('attendance').select('check_in, work_date').eq('id', id).single();
   if (fetchErr || !rec) return toast('خطا در یافتن رکورد', 'error');
-
   const baseDate = rec.work_date;
   let newCheckIn = null, newCheckOut = null;
-  if (inVal) newCheckIn = new Date(`${baseDate}T${inVal}:00`).toISOString();
-  if (outVal) newCheckOut = new Date(`${baseDate}T${outVal}:00`).toISOString();
-  if (newCheckIn && newCheckOut && new Date(newCheckOut) <= new Date(newCheckIn)) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
-
+  if (inVal) newCheckIn = `${baseDate}T${inVal}:00`; if (outVal) newCheckOut = `${baseDate}T${outVal}:00`;
+  if (newCheckIn && newCheckOut && getTimeParts(newCheckOut).mins <= getTimeParts(newCheckIn).mins) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
   const { error } = await app.db.from('attendance').update({ check_in: newCheckIn, check_out: newCheckOut }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-
-  closeEditModal();
-  toast('ویرایش شد', 'success');
-  loadTodayRecords();
+  closeEditModal(); toast('ویرایش شد', 'success'); loadTodayRecords();
   if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
@@ -936,34 +807,28 @@ window.deleteRecord = async function(id){
   if (!confirm('آیا از حذف این رکورد مطمئن هستید؟')) return;
   const { error } = await app.db.from('attendance').delete().eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  toast('حذف شد', 'success');
-  loadTodayRecords();
+  toast('حذف شد', 'success'); loadTodayRecords();
   if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
 
-// ---------- Branches / Employees ----------
 async function loadBranches(){
   if (!navigator.onLine) return;
   const { data, error } = await app.db.from('branches').select('*').order('id');
   if (error){ console.error(error); return; }
-  app.branches = data || [];
-  renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
+  app.branches = data || []; renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
 }
 function fillBranchSelects(){
   const opts = '<option value="">انتخاب شعبه...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const s1 = document.getElementById('branchSelect'), s2 = document.getElementById('newEmpBranch');
-  if (s1) s1.innerHTML = opts;
-  if (s2) s2.innerHTML = '<option value="">شعبه (اختیاری)...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  if (s1) s1.innerHTML = opts; if (s2) s2.innerHTML = '<option value="">شعبه (اختیاری)...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 }
 function fillTodayBranchFilter() {
-  const sel = document.getElementById('todayBranchFilter');
-  if (!sel) return;
+  const sel = document.getElementById('todayBranchFilter'); if (!sel) return;
   sel.innerHTML = '<option value="all">🏢 همه شعبه‌ها</option>' + app.branches.map(b => `<option value="${b.id}">🏢 ${b.name}</option>`).join('');
 }
 function renderBranches(){
-  const el = document.getElementById('branchesList');
-  if (!el) return;
+  const el = document.getElementById('branchesList'); if (!el) return;
   if (!app.branches.length){ el.innerHTML = '<div class="empty">شعبه‌ای تعریف نشده</div>'; return; }
   el.innerHTML = app.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">حذف</button></div>`).join('');
 }
@@ -972,10 +837,8 @@ window.deleteBranch = async function(id){
   if (!confirm('شعبه حذف شود؟')) return;
   const { error } = await app.db.from('branches').delete().eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
-  toast('حذف شد', 'success');
+  await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter(); toast('حذف شد', 'success');
 };
-
 async function loadEmployees(){
   if (!navigator.onLine) return;
   const { data: emps, error } = await app.db.from('employees').select('*').order('id');
@@ -986,8 +849,7 @@ async function loadEmployees(){
   renderEmployees();
 }
 function renderEmployees(){
-  const el = document.getElementById('employeesList');
-  if (!el) return;
+  const el = document.getElementById('employeesList'); if (!el) return;
   if (!app.employees.length){ el.innerHTML = '<div class="empty">پرسنلی تعریف نشده</div>'; return; }
   el.innerHTML = app.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">حذف</button></div>`).join('');
 }
@@ -996,212 +858,123 @@ window.deleteEmployee = async function(id){
   if (!confirm('پرسنل حذف شود؟ (تمامی سوابق هم حذف می‌شود)')) return;
   const { error } = await app.db.from('employees').delete().eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
-  toast('حذف شد', 'success');
+  await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); toast('حذف شد', 'success');
 };
-
 function fillEmpSelect(){
-  const sel = document.getElementById('empSelect');
-  if (!sel) return;
+  const sel = document.getElementById('empSelect'); if (!sel) return;
   sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
 }
 function fillReportFilter(){
-  const sel = document.getElementById('reportEmpFilter');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
+  const sel = document.getElementById('reportEmpFilter'); if (!sel) return;
+  const cur = sel.value; sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
   if (cur && cur !== 'all') sel.value = cur;
 }
 function filterEmpSelectBySearch(query) {
-  const sel = document.getElementById('empSelect');
-  if (!sel) return;
-  const q = query.trim().toLowerCase();
-  const cur = sel.value;
+  const sel = document.getElementById('empSelect'); if (!sel) return;
+  const q = query.trim().toLowerCase(); const cur = sel.value;
   const matches = q ? app.employees.filter(e => e.name.toLowerCase().includes(q)) : app.employees;
   sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + matches.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
   if (cur) sel.value = cur;
-  if (q && matches.length === 1) {
-    sel.value = matches[0].id;
-    const bId = matches[0].branch_id;
-    if (bId) document.getElementById('branchSelect').value = bId;
-  }
+  if (q && matches.length === 1) { sel.value = matches[0].id; const bId = matches[0].branch_id; if (bId) document.getElementById('branchSelect').value = bId; }
 }
 
-// ---------- Check In/Out/Leave ----------
 async function doCheckIn(){
-  const empId = document.getElementById('empSelect').value;
-  const branchId = document.getElementById('branchSelect').value;
-  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
-  if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
-
+  const empId = document.getElementById('empSelect').value; const branchId = document.getElementById('branchSelect').value;
+  if (!empId) return toast('پرسنل را انتخاب کنید', 'error'); if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
   const today = getLocalDateStr();
-  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: new Date().toISOString(), work_date: today, status: 'present' };
+  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: getNowLocalIso(), work_date: today, status: 'present' };
 
   if (!navigator.onLine) {
-    const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
-    queue.push(payload);
-    localStorage.setItem(LS_KEYS.offlineQueue, JSON.stringify(queue));
-    toast('📴 اینترنت قطع است. ورود شما موقتاً در گوشی ذخیره شد.', 'warning', 4000);
-    loadTodayRecords();
-    return;
+    const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]'); queue.push(payload);
+    localStorage.setItem(LS_KEYS.offlineQueue, JSON.stringify(queue)); toast('📴 اینترنت قطع است. ورود شما موقتاً در گوشی ذخیره شد.', 'warning', 4000);
+    loadTodayRecords(); return;
   }
 
   try {
     const { data: leave } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1);
     if (leave && leave.length) return toast('برای این پرسنل امروز مرخصی ثبت شده!', 'error');
-
     const { data: open } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').limit(1);
     if (open && open.length) return toast('این پرسنل هنوز خروج نزده!', 'error');
-
-    const { error } = await app.db.from('attendance').insert(payload);
-    if (error) throw error;
-
+    const { error } = await app.db.from('attendance').insert(payload); if (error) throw error;
     localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId);
-    toast('✅ ورود ثبت شد', 'success');
-    loadTodayRecords();
+    toast('✅ ورود ثبت شد', 'success'); loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function doCheckOut(){
-  const empId = document.getElementById('empSelect').value;
-  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
-
-  if (!navigator.onLine) {
-    return toast('📴 برای ثبت خروج نیاز به اینترنت دارید.', 'error', 4000);
-  }
-
+  const empId = document.getElementById('empSelect').value; if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
+  if (!navigator.onLine) { return toast('📴 برای ثبت خروج نیاز به اینترنت دارید.', 'error', 4000); }
   try {
     const { data, error } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1);
-    if (error) throw error;
-    if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
-    const { error: ue } = await app.db.from('attendance').update({ check_out: new Date().toISOString() }).eq('id', data[0].id);
-    if (ue) throw ue;
-    localStorage.setItem(LS_KEYS.emp, empId);
-    toast('✅ خروج ثبت شد', 'success');
-    loadTodayRecords();
+    if (error) throw error; if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
+    const { error: ue } = await app.db.from('attendance').update({ check_out: getNowLocalIso() }).eq('id', data[0].id);
+    if (ue) throw ue; localStorage.setItem(LS_KEYS.emp, empId); toast('✅ خروج ثبت شد', 'success'); loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function doLeave(){
-  const empId = document.getElementById('empSelect').value;
-  const branchId = document.getElementById('branchSelect').value;
-  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
-  if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
+  const empId = document.getElementById('empSelect').value; const branchId = document.getElementById('branchSelect').value;
+  if (!empId) return toast('پرسنل را انتخاب کنید', 'error'); if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
   if (!navigator.onLine) return toast('برای ثبت مرخصی نیاز به اینترنت دارید', 'error');
-
   const today = getLocalDateStr();
   try {
     const { data: present } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'present').limit(1);
     if (present && present.length) return toast('امروز تردد ثبت شده!', 'error');
-
     const { data: leave } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1);
     if (leave && leave.length) return toast('قبلاً مرخصی ثبت شده!', 'error');
-
-    const { error } = await app.db.from('attendance').insert({
-      employee_id: Number(empId), branch_id: Number(branchId),
-      check_in: null, check_out: null, work_date: today, status: 'leave'
-    });
+    const { error } = await app.db.from('attendance').insert({ employee_id: Number(empId), branch_id: Number(branchId), check_in: null, check_out: null, work_date: today, status: 'leave' });
     if (error) throw error;
-
     localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId);
-    toast('🌴 مرخصی ثبت شد', 'success');
-    loadTodayRecords();
+    toast('🌴 مرخصی ثبت شد', 'success'); loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function loadTodayRecords(){
-  const el = document.getElementById('todayRecords');
-  if (!el) return;
+  const el = document.getElementById('todayRecords'); if (!el) return;
   el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
-  
   const offlineQueue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
-
   try {
-    const today = getLocalDateStr();
-    const branchFilter = document.getElementById('todayBranchFilter')?.value || 'all';
+    const today = getLocalDateStr(); const branchFilter = document.getElementById('todayBranchFilter')?.value || 'all';
     let attData = [];
-    
     if (navigator.onLine) {
       let query = app.db.from('attendance').select('*').eq('work_date', today).order('id', { ascending:false });
       if (branchFilter !== 'all') query = query.eq('branch_id', Number(branchFilter));
-      const { data, error } = await query;
-      if (error) throw new Error(error.message);
-      attData = data || [];
+      const { data, error } = await query; if (error) throw new Error(error.message); attData = data || [];
     }
-
     const allData = [...offlineQueue, ...attData];
-    
-    if (!allData.length){ 
-      el.innerHTML = '<div class="empty">امروز ترددی ثبت نشده</div>'; 
-      document.getElementById('dailyTotal').textContent = '۰'; 
-      return; 
-    }
-    
-    const [empMap, brMap] = await Promise.all([ 
-      getEmpNameMap(allData.map(r => r.employee_id)), 
-      getBranchNameMap(allData.map(r => r.branch_id)) 
-    ]);
-    
+    if (!allData.length){ el.innerHTML = '<div class="empty">امروز ترددی ثبت نشده</div>'; document.getElementById('dailyTotal').textContent = '۰'; return; }
+    const [empMap, brMap] = await Promise.all([ getEmpNameMap(allData.map(r => r.employee_id)), getBranchNameMap(allData.map(r => r.branch_id)) ]);
     let total = 0;
     el.innerHTML = allData.map(r => {
-      const isOffline = !r.id;
-      const offlineBadge = isOffline ? '<span class="chip" style="background:#fef3c7; color:#92400e;">در انتظار ارسال</span>' : '';
-
+      const isOffline = !r.id; const offlineBadge = isOffline ? '<span class="chip" style="background:#fef3c7; color:#92400e;">در انتظار ارسال</span>' : '';
       if (r.status === 'leave') {
         return `<div class="record-item leave"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی تمام روز</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div></div>`;
       }
-      
-      const inT = r.check_in ? timeFa(r.check_in) : '---';
-      const outT = r.check_out ? timeFa(r.check_out) : '---';
-      if (r.check_in && r.check_out) total += minutesBetween(r.check_in, r.check_out);
+      const inT = r.check_in ? getTimeParts(r.check_in).str : '---'; const outT = r.check_out ? getTimeParts(r.check_out).str : '---';
+      if (r.check_in && r.check_out) total += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins);
       const late = r.check_in && isLate(r.check_in) ? ` <span style="color:#f97316; font-size:11px;">(تأخیر ${faNum(getLateMinutes(r.check_in))}د)</span>` : '';
-      
       return `<div class="record-item ${r.check_out ? 'out' : ''} ${late ? 'late' : ''} ${isOffline ? 'offline' : ''}">
-        <div class="record-content">
-          <strong>${empMap.get(r.employee_id) || '---'}</strong>
-          <span class="chip">${brMap.get(r.branch_id) || '---'}</span>
-          ${offlineBadge}
-          <div class="meta">ورود: ${inT}${late} | خروج: ${outT}</div>
-        </div>
-        <div class="action-btns">
-          ${!isOffline ? `<button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}
-        </div>
+        <div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta">ورود: ${inT}${late} | خروج: ${outT}</div></div>
+        <div class="action-btns">${!isOffline ? `<button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div>
       </div>`;
     }).join('');
     document.getElementById('dailyTotal').textContent = faNum(total);
-  } catch (err) {
-    console.error(err);
-    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
-  }
+  } catch (err) { console.error(err); el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>'; }
 }
 
-// ---------- Reports ----------
 async function loadReports(){
-  const el = document.getElementById('reportsList');
-  if (!el) return;
+  const el = document.getElementById('reportsList'); if (!el) return;
   if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
   el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
-
   const filterEmpId = document.getElementById('reportEmpFilter').value;
   const searchQ = (document.getElementById('reportSearch')?.value || '').trim().toLowerCase();
-
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
   document.getElementById('monthlyRange').textContent = `بازه: ${toJalaliShort(start)} تا ${toJalaliShort(new Date(end-1))}`;
-
   let query = app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)).order('id', { ascending:false });
   if (filterEmpId !== 'all') query = query.eq('employee_id', Number(filterEmpId));
-
   try {
-    const { data: attData, error } = await query;
-    if (error) throw error;
-
-    const [empMap, brMap] = await Promise.all([
-      getEmpNameMap((attData||[]).map(r => r.employee_id)),
-      getBranchNameMap((attData||[]).map(r => r.branch_id))
-    ]);
-
+    const { data: attData, error } = await query; if (error) throw error;
+    const [empMap, brMap] = await Promise.all([ getEmpNameMap((attData||[]).map(r => r.employee_id)), getBranchNameMap((attData||[]).map(r => r.branch_id)) ]);
     const map = new Map();
     app.employees.forEach(e => {
       if (filterEmpId === 'all' || e.id.toString() === filterEmpId.toString()) {
@@ -1209,146 +982,88 @@ async function loadReports(){
         map.set(e.id, { emp:e, records:[], total:0, leaves:0, lateCount:0 });
       }
     });
-
     (attData || []).forEach(r => {
-      const item = map.get(r.employee_id);
-      if (!item) return;
+      const item = map.get(r.employee_id); if (!item) return;
       item.records.push(r);
       if (r.status === 'leave') item.leaves++;
       else if (r.check_in && r.check_out) {
-        item.total += minutesBetween(r.check_in, r.check_out);
+        item.total += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins);
         if (isLate(r.check_in)) item.lateCount++;
       }
     });
-
-    let grand = 0;
-    const html = [];
+    let grand = 0; const html = [];
     map.forEach(({ emp, records, total, leaves, lateCount }) => {
-      grand += total;
-      const hm = minutesToHM(total);
+      grand += total; const hm = minutesToHM(total);
       const recHtml = records.length ? records.map(r => {
-        if (r.status === 'leave') {
-          return `<div class="record-item leave"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
-        }
-        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">ورود: ${r.check_in ? timeFa(r.check_in) : '---'} | خروج: ${r.check_out ? timeFa(r.check_out) : '--- (باز)'}</div>${r.check_out ? `<div class="meta">مدت: ${faNum(minutesBetween(r.check_in, r.check_out))} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
+        if (r.status === 'leave') return `<div class="record-item leave"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
+        const m = r.check_in && r.check_out ? getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins : 0;
+        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">ورود: ${r.check_in ? getTimeParts(r.check_in).str : '---'} | خروج: ${r.check_out ? getTimeParts(r.check_out).str : '--- (باز)'}</div>${r.check_out ? `<div class="meta">مدت: ${faNum(m)} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
       }).join('') : '<div class="empty" style="padding:10px;">رکوردی ندارد</div>';
-
-      html.push(`<div class="employee-card">
-        <div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div>
-        <div class="stats">
-          <span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span>
-          <span>🌴 مرخصی: ${faNum(leaves)} روز</span>
-          <span>⚠️ تأخیر: ${faNum(lateCount)}</span>
-          <span>📄 تعداد: ${faNum(records.length)}</span>
-        </div>
-        <details><summary>مشاهده سوابق</summary>${recHtml}</details>
-      </div>`);
+      html.push(`<div class="employee-card"><div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div><div class="stats"><span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span><span>🌴 مرخصی: ${faNum(leaves)} روز</span><span>⚠️ تأخیر: ${faNum(lateCount)}</span><span>📄 تعداد: ${faNum(records.length)}</span></div><details><summary>مشاهده سوابق</summary>${recHtml}</details></div>`);
     });
     el.innerHTML = html.join('') || '<div class="empty">داده‌ای نیست</div>';
-    const g = minutesToHM(grand);
-    document.getElementById('monthlyTotalH').textContent = faNum(g.h);
-    document.getElementById('monthlyTotalM').textContent = faNum(g.m);
-  } catch (err) {
-    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
-  }
+    const g = minutesToHM(grand); document.getElementById('monthlyTotalH').textContent = faNum(g.h); document.getElementById('monthlyTotalM').textContent = faNum(g.m);
+  } catch (err) { el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>'; }
 }
 
-// ---------- Dashboard ----------
 async function loadDashboard(){
   if (!navigator.onLine) { toast('برای مشاهده داشبورد نیاز به اینترنت دارید', 'error'); return; }
   try {
-    const today = getLocalDateStr();
-    const now = new Date();
-    const monthStart = getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
-    const monthEnd = getLocalDateStr(new Date(now.getFullYear(), now.getMonth()+1, 1));
-
+    const today = getLocalDateStr(); const now = new Date();
+    const monthStart = getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1)); const monthEnd = getLocalDateStr(new Date(now.getFullYear(), now.getMonth()+1, 1));
     const { data: todayData } = await app.db.from('attendance').select('*').eq('work_date', today);
-    const { data: monthData } = await app.db.from('attendance').select('*').gte('work_date', monthStart).lt('work_date', monthEnd);
-
-    let presentToday = 0, leaveToday = 0, totalToday = 0, lateMonth = 0;
+    const { data: monthData(l } = await app.db.from('attendance').select('*ate').gte('work_date', monthStart).Monthlt('work_date', monthEnd);
+    let presentToday); = 0, leaveToday document = 0, totalToday = 0, lateMonth = 0;
     (todayData || []).forEach(r => {
-      if (r.status === 'leave') leaveToday++;
-      else if (r.check_in) presentToday++;
-      if (r.check_in && r.check_out) totalToday += minutesBetween(r.check_in, r.check_out);
+      if (r.status === 'leave') leaveToday++; else if (r.check_in) presentToday++;
+      if (r.check_in && r.check_out) totalToday += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins);
     });
-
     const empTotals = new Map();
     (monthData || []).forEach(r => {
       if (r.status === 'leave') return;
       if (r.check_in && r.check_out) {
-        const mins = minutesBetween(r.check_in, r.check_out);
-        empTotals.set(r.employee_id, (empTotals.get(r.employee_id) || 0) + mins);
-        if (isLate(r.check_in)) lateMonth++;
+        const mins = getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins;
+        empTotals.set(r.employee_id, (empTotals.get(r.employee_id) || 0) + mins); if (isLate(r.check_in)) lateMonth++;
       }
     });
-
-    let totalMonth = 0;
-    empTotals.forEach(v => totalMonth += v);
-
-    document.getElementById('dashPresentToday').textContent = faNum(presentToday);
-    document.getElementById('dashLeaveToday').textContent = faNum(leaveToday);
-    document.getElementById('dashTotalToday').textContent = faNum(minutesToHM(totalToday).h);
-    document.getElementById('dashTotalMonth').textContent = faNum(minutesToHM(totalMonth).h);
-    document.getElementById('dashLateMonth').textContent = faNum(lateMonth);
-    document.getElementById('dashTotalEmp').textContent = faNum(app.employees.length);
-
-    const sorted = [...empTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0, 5);
-    const topEl = document.getElementById('dashTopList');
+    let totalMonth = 0; empTotals.forEach(v => totalMonth += v);
+    document.getElementById('dashPresentToday').textContent = faNum(presentToday); document.getElementById('dashLeaveToday').textContent = faNum(leaveToday);
+    document.getElementById('dashTotalToday').textContent = faNum(minutesToHM(totalToday).h); document.getElementById('dashTotalMonth').textContent = faNum(minutesToHM(totalMonth).h);
+    document.getElementById('dashLateMonth').textContent = faNum.getElementById('dashTotalEmp').textContent = faNum(app.employees.length);
+    const sorted = [...empTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0, 5); const topEl = document.getElementById('dashTopList');
     if (!sorted.length) { topEl.innerHTML = '<div class="empty">داده‌ای برای این ماه نیست</div>'; }
     else {
       topEl.innerHTML = sorted.map(([empId, mins], i) => {
-        const emp = app.employees.find(e => e.id === empId);
-        const hm = minutesToHM(mins);
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
+        const emp = app.employees.find(e => e.id === empId); const hm = minutesToHM(mins); const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
         return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong>${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
       }).join('');
     }
-  } catch (err) {
-    toast('خطا در داشبورد: ' + err.message, 'error');
-  }
+  } catch (err) { toast('خطا در داشبورد: ' + err.message, 'error'); }
 }
 
-// ---------- Export ----------
 window.exportToExcel = async function() {
   if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
   const filterEmpId = document.getElementById('reportEmpFilter').value;
   if (filterEmpId === 'all') return toast('ابتدا یک پرسنل انتخاب کنید', 'error');
-  const emp = app.employees.find(e => e.id.toString() === filterEmpId.toString());
-  if (!emp) return toast('پرسنل یافت نشد', 'error');
-
+  const emp = app.employees.find(e => e.id.toString() === filterEmpId.toString()); if (!emp) return toast('پرسنل یافت نشد', 'error');
   try {
-    const now = new Date();
-    const year = now.getFullYear(), month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const now = new Date(); const year = now.getFullYear(), month = now.getMonth(); const daysInMonth = new Date(year, month + 1, 0).getDate();
     const start = new Date(year, month, 1), end = new Date(year, month + 1, 1);
-
     const { data: attData, error } = await app.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
     if (error) throw error;
-
-    const brMap = await getBranchNameMap(attData.map(r => r.branch_id));
-    const recordsByDay = {};
-    (attData || []).forEach(r => {
-      const jStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(r.work_date));
-      recordsByDay[jStr] = r;
-    });
-
-    const wsData = [["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]];
-    let jDate = "";
+    const brMap = await getBranchNameMap(attData.map(r => r.branch_id)); const recordsByDay = {};
+    (attData || []).forEach(r => { const jStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(r.work_date)); recordsByDay[jStr] = r; });
+    const wsData = [["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]]; let jDate = "";
     for (let i = 1; i <= daysInMonth; i++) {
-      const d = new Date(year, month, i);
-      const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
+      const d = new Date(year, month, i); const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
       jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
       let inT = "", outT = "", workTime = "", notes = "", lateStr = "";
       const rec = recordsByDay[jDate];
       if (rec) {
-        if (rec.status === 'leave') { notes = "مرخصی"; }
-        else {
-          if (rec.check_in) inT = getTimeForInput(rec.check_in);
-          if (rec.check_out) outT = getTimeForInput(rec.check_out);
-          if (rec.check_in && rec.check_out) {
-            const diffMins = minutesBetween(rec.check_in, rec.check_out);
-            workTime = `${String(Math.floor(diffMins/60)).padStart(2,'0')}:${String(diffMins%60).padStart(2,'0')}`;
-          }
+        if (rec.status === 'leave') { notes = "مرخصی"; } else {
+          if (rec.check_in) inT = getTimeParts(rec.check_in).str;
+          if (rec.check_out) outT = getTimeParts(rec.check_out).str;
+          if (rec.check_in && rec.check_out) { const m = getTimeParts(rec.check_out).mins - getTimeParts(rec.check_in).mins; workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
           if (rec.check_in && isLate(rec.check_in)) lateStr = `${getLateMinutes(rec.check_in)} دقیقه`;
           const bName = brMap.get(rec.branch_id); if (bName) notes = `شعبه: ${bName}`;
         }
@@ -1362,148 +1077,82 @@ window.exportToExcel = async function() {
 window.exportAllEmployees = async function() {
   if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
   try {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
     const { data: attData, error } = await app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
     if (error) throw error;
-
-    const [empMap, brMap] = await Promise.all([
-      getEmpNameMap((attData||[]).map(r => r.employee_id)),
-      getBranchNameMap((attData||[]).map(r => r.branch_id))
-    ]);
-
+    const [empMap, brMap] = await Promise.all([ getEmpNameMap((attData||[]).map(r => r.employee_id)), getBranchNameMap((attData||[]).map(r => r.branch_id)) ]);
     const wsData = [["پرسنل", "شعبه", "تاریخ", "روز", "ورود", "خروج", "کارکرد", "وضعیت"]];
     (attData || []).forEach(r => {
-      const d = new Date(r.work_date);
-      const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+      const d = new Date(r.work_date); const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
       const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
       let inT = "", outT = "", workTime = "", status = "حاضر";
-      if (r.status === 'leave') status = "مرخصی";
-      else {
-        if (r.check_in) inT = getTimeForInput(r.check_in);
-        if (r.check_out) outT = getTimeForInput(r.check_out);
-        if (r.check_in && r.check_out) {
-          const m = minutesBetween(r.check_in, r.check_out);
-          workTime = `${String(Math.floor(m/60)).padStart((2,'0')}:${String(m%bl60).padStart(2,'ob0')}`;
-        }
+      if (r.status === 'leave') status = "مرخصی"; else {
+        if (r.check_in) inT = getTimeParts(r.check_in).str; if (r.check_out) outT = getTimeParts(r.check_out).str;
+        if (r.check_in && r.check_out) { const m = getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins; workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
       }
-      wsData,.push([empMap.get(r.employee_id) || filename '---', brMap.get(r).branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
+      wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
     });
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:8},{wch:8},{wch:10},{wch:10}];
-    XLSX.utils.book_append_sheet(wb, ws, 'همه پرسنل');
-    const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/octet-stream' });
-    triggerDownload(blob, `گزارش_کل_${new Date().toISOString().slice(0,10)}.xlsx`);
-    toast('فایل دانلود شد', 'success');
+    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:8},{wch:8},{wch:10},{wch:10}]; XLSX.utils.book_append_sheet(wb, ws, 'همه پرسنل');
+    const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' }); const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    triggerDownload(blob, `گزارش_کل_${new Date().toISOString().slice(0,10)}.xlsx`); toast('فایل دانلود شد', 'success');
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 };
 
 function downloadWorkbook(wsData, sheetName, jDate) {
   try {
     if (typeof XLSX !== 'undefined') {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}];
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: 'application/octet-stream' });
-      triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.xlsx`);
-      return;
+      const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}]; XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' }); const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.xlsx`); return;
     }
   } catch(e) { console.warn('XLSX error', e); }
-  let csv = "\uFEFF";
-  wsData.forEach(row => { csv += row.map(c => `"${c}"`).join(",") + "\r\n"; });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.csv`);
+  let csv = "\uFEFF"; wsData.forEach(row => { csv += row.map(c => `"${c}"`).join(",") + "\r\n"; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.csv`);
 }
 
-function triggerDownload {
+function triggerDownload(blob, filename) {
   if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename)] })) {
-    const file = new File([blob], filename, { type: blob.type });
-    navigator.share({ files: [file], title: filename }).catch(() => {});
+    const file = new File([blob], filename, { type: blob.type }); navigator.share({ files: [file], title: filename }).catch(() => {});
   } else {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }
 
-// ---------- Wire up ----------
-app.loadReports = loadReports;
-app.renderEmployees = renderEmployees;
-app.renderBranches = renderBranches;
+app.loadReports = loadReports; app.renderEmployees = renderEmployees; app.renderBranches = renderBranches;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  loadSettings();
-  applyTheme();
-
-  const authenticated = await requirePin();
-  if (!authenticated) return;
-
+  loadSettings(); applyTheme();
+  const authenticated = await requirePin(); if (!authenticated) return;
   setupTabs();
 
-  document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn);
-  document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut);
-  document.getElementById('btnLeave')?.addEventListener('click', doLeave);
-  document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
+  document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn); document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut);
+  document.getElementById('btnLeave')?.addEventListener('click', doLeave); document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
 
-  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => {
-    localStorage.setItem(LS_KEYS.reportEmp, e.target.value);
-    loadReports();
-  });
+  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => { localStorage.setItem(LS_KEYS.reportEmp, e.target.value); loadReports(); });
   document.getElementById('reportSearch')?.addEventListener('input', () => loadReports());
-  document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => {
-    localStorage.setItem(LS_KEYS.todayBranch, e.target.value);
-    loadTodayRecords();
-  });
+  document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => { localStorage.setItem(LS_KEYS.todayBranch, e.target.value); loadTodayRecords(); });
 
-  document.getElementById('calEmpSelect')?.addEventListener('change', loadCalendar);
-  document.getElementById('calMonthSelect')?.addEventListener('change', loadCalendar);
-  document.getElementById('calYearSelect')?.addEventListener('change', loadCalendar);
+  document.getElementById('calEmpSelect')?.addEventListener('change', loadCalendar); document.getElementById('calMonthSelect')?.addEventListener('change', loadCalendar); document.getElementById('calYearSelect')?.addEventListener('change', loadCalendar);
   document.getElementById('empSearchInput')?.addEventListener('input', (e) => filterEmpSelectBySearch(e.target.value));
 
   document.getElementById('btnAddBranch')?.addEventListener('click', async () => {
     if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error');
-    const name = document.getElementById('newBranchName').value.trim();
-    if (!name) return toast('نام شعبه را وارد کنید', 'error');
-    try {
-      const { error } = await app.db.from('branches').insert({ name });
-      if (error) throw error;
-      document.getElementById('newBranchName').value = '';
-      await loadBranches();
-      toast('شعبه اضافه شد', 'success');
-    } catch (err) { toast('خطا: ' + err.message, 'error'); }
+    const name = document.getElementById('newBranchName').value.trim(); if (!name) return toast('نام شعبه را وارد کنید', 'error');
+    try { const { error } = await app.db.from('branches').insert({ name }); if (error) throw error; document.getElementById('newBranchName').value = ''; await loadBranches(); toast('شعبه اضافه شد', 'success'); } catch (err) { toast('خطا: ' + err.message, 'error'); }
   });
 
   document.getElementById('btnAddEmp')?.addEventListener('click', async () => {
     if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error');
-    const name = document.getElementById('newEmpName').value.trim();
-    const branchId = document.getElementById('newEmpBranch').value || null;
+    const name = document.getElementById('newEmpName').value.trim(); const branchId = document.getElementById('newEmpBranch').value || null;
     if (!name) return toast('نام را وارد کنید', 'error');
-    try {
-      const { error } = await app.db.from('employees').insert({ name, branch_id: branchId });
-      if (error) throw error;
-      document.getElementById('newEmpName').value = '';
-      await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
-      toast('پرسنل اضافه شد', 'success');
-    } catch (err) { toast('خطا: ' + err.message, 'error'); }
+    try { const { error } = await app.db.from('employees').insert({ name, branch_id: branchId }); if (error) throw error; document.getElementById('newEmpName').value = ''; await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); toast('پرسنل اضافه شد', 'success'); } catch (err) { toast('خطا: ' + err.message, 'error'); }
   });
 
-  document.getElementById('empSelect')?.addEventListener('change', (e) => {
-    const opt = e.target.selectedOptions[0];
-    const bId = opt?.dataset.branch;
-    if (bId) document.getElementById('branchSelect').value = bId;
-    if (e.target.value) localStorage.setItem(LS_KEYS.emp, e.target.value);
-  });
-  document.getElementById('branchSelect')?.addEventListener('change', (e) => {
-    if (e.target.value) localStorage.setItem(LS_KEYS.branch, e.target.value);
-  });
+  document.getElementById('empSelect')?.addEventListener('change', (e) => { const opt = e.target.selectedOptions[0]; const bId = opt?.dataset.branch; if (bId) document.getElementById('branchSelect').value = bId; if (e.target.value) localStorage.setItem(LS_KEYS.emp, e.target.value); });
+  document.getElementById('branchSelect')?.addEventListener('change', (e) => { if (e.target.value) localStorage.setItem(LS_KEYS.branch, e.target.value); });
 
   initApp();
 });
