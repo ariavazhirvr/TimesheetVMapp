@@ -134,6 +134,8 @@
   .settings-row label { font-size:13px; color:var(--text); }
   .settings-row input[type="time"] { width:120px; margin:0; }
   .settings-row input[type="checkbox"] { width:auto; margin:0; }
+
+  .archive-badge { background:#6b7280; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
 </style>
 </head>
 <body>
@@ -927,10 +929,10 @@ window.deleteRecord = async function(id){
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
 
-// ---------- Branches / Employees ----------
+// ---------- Branches / Employees (Soft Delete) ----------
 async function loadBranches(){
   if (!navigator.onLine) return;
-  const { data, error } = await app.db.from('branches').select('*').order('id');
+  const { data, error } = await app.db.from('branches').select('*').is('deleted_at', null).order('id');
   if (error){ console.error(error); return; }
   app.branches = data || [];
   renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
@@ -950,20 +952,20 @@ function renderBranches(){
   const el = document.getElementById('branchesList');
   if (!el) return;
   if (!app.branches.length){ el.innerHTML = '<div class="empty">شعبه‌ای تعریف نشده</div>'; return; }
-  el.innerHTML = app.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">حذف</button></div>`).join('');
+  el.innerHTML = app.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">غیرفعال</button></div>`).join('');
 }
 window.deleteBranch = async function(id){
-  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error');
-  if (!confirm('شعبه حذف شود؟')) return;
-  const { error } = await app.db.from('branches').delete().eq('id', id);
+  if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
+  if (!confirm('این شعبه غیرفعال شود؟ (سوابق تردد حفظ می‌شود)')) return;
+  const { error } = await app.db.from('branches').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
-  toast('حذف شد', 'success');
+  toast('شعبه غیرفعال شد (سوابق حفظ شد)', 'success');
 };
 
 async function loadEmployees(){
   if (!navigator.onLine) return;
-  const { data: emps, error } = await app.db.from('employees').select('*').order('id');
+  const { data: emps, error } = await app.db.from('employees').select('*').is('deleted_at', null).order('id');
   if (error){ console.error(error); return; }
   app.employees = emps || [];
   const brMap = await getBranchNameMap(app.employees.map(e => e.branch_id));
@@ -974,15 +976,15 @@ function renderEmployees(){
   const el = document.getElementById('employeesList');
   if (!el) return;
   if (!app.employees.length){ el.innerHTML = '<div class="empty">پرسنلی تعریف نشده</div>'; return; }
-  el.innerHTML = app.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">حذف</button></div>`).join('');
+  el.innerHTML = app.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">غیرفعال</button></div>`).join('');
 }
 window.deleteEmployee = async function(id){
-  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error');
-  if (!confirm('پرسنل حذف شود؟ (تمامی سوابق هم حذف می‌شود)')) return;
-  const { error } = await app.db.from('employees').delete().eq('id', id);
+  if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
+  if (!confirm('این پرسنل غیرفعال شود؟ (تمام سوابق تردد او حفظ می‌شود)')) return;
+  const { error } = await app.db.from('employees').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
-  toast('حذف شد', 'success');
+  toast('پرسنل غیرفعال شد (سوابق حفظ شد)', 'success');
 };
 
 function fillEmpSelect(){
