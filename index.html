@@ -18,6 +18,7 @@
     --record-bg: #f9fafb; --chip-bg: #eff6ff; --chip-text: #1e40af;
     --total-bg: #eff6ff; --total-text: #1e40af;
     --present-bg: #f0fdf4; --leave-bg: #fffbeb; --danger-bg: #fee2e2;
+    --header-bg: #ffffff;
   }
   body.dark {
     --bg: #111827; --card: #1f2937; --text: #f3f4f6; --muted: #9ca3af;
@@ -25,74 +26,114 @@
     --record-bg: #111827; --chip-bg: #1e3a8a; --chip-text: #93c5fd;
     --total-bg: #1e3a8a; --total-text: #93c5fd;
     --present-bg: #064e3b; --leave-bg: #78350f; --danger-bg: #7f1d1d;
+    --header-bg: #1f2937;
   }
-  body { background:var(--bg); color:var(--text); padding:12px; margin:0; padding-bottom:40px; }
-  .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  body { background:var(--bg); color:var(--text); padding:12px; margin:0; padding-bottom:40px; transition: background .2s, color .2s; }
+  .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); transition: background .2s; }
   h2 { margin:0 0 12px; color:var(--text); font-size:16px; }
   input, select, button, textarea { width:100%; padding:10px; margin:6px 0; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--input-bg); color:var(--text); }
   button { background:#10b981; color:white; border:none; cursor:pointer; font-weight:bold; }
-  button.danger { background:#ef4444; } button.primary { background:#3b82f6; } button.warning { background:#f59e0b; }
-  button.small { padding:6px; font-size:12px; width:auto; } button.ghost { background:transparent; border:1px solid var(--input-border); color:var(--text); }
+  button:active { opacity:.8; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  button.danger { background:#ef4444; }
+  button.primary { background:#3b82f6; }
+  button.warning { background:#f59e0b; }
+  button.small { padding:6px; font-size:12px; width:auto; }
+  button.ghost { background:transparent; border:1px solid var(--input-border); color:var(--text); }
   .time-display { font-size:26px; text-align:center; color:#10b981; font-weight:bold; margin:4px 0; }
   .date-display { text-align:center; color:var(--muted); font-size:13px; }
   .tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
-  .tab { flex:1; padding:10px 4px; text-align:center; background:var(--card); color:var(--text); border-radius:8px; cursor:pointer; font-size:12px; border:2px solid transparent; }
+  .tab { flex:1; padding:10px 4px; text-align:center; background:var(--card); color:var(--text); border-radius:8px; cursor:pointer; font-size:12px; border:2px solid transparent; user-select:none; min-width:70px; }
   .tab.active { border-color:#3b82f6; color:#3b82f6; font-weight:bold; }
-  .section { display:none; } .section.active { display:block; }
+  .section { display:none; }
+  .section.active { display:block; }
   .chip { display:inline-block; background:var(--chip-bg); color:var(--chip-text); padding:4px 8px; border-radius:6px; font-size:12px; margin:2px; }
-  .record-item { background:var(--record-bg); border-radius:8px; padding:10px; margin-bottom:6px; border-right:3px solid #10b981; display:flex; justify-content:space-between; gap:8px; }
-  .record-item.out { border-right-color:#ef4444; } .record-item.leave { border-right-color:#f59e0b; background:var(--leave-bg); }
-  .record-item.late { border-right-color:#f97316; } .record-item.offline { border-right-color:#f59e0b; border-right-style: dashed; background:#fffbeb; }
-  .record-content { flex:1; } .record-item .meta { font-size:12px; color:var(--muted); margin-top:2px; }
+
+  .record-item { background:var(--record-bg); border-radius:8px; padding:10px; margin-bottom:6px; border-right:3px solid #10b981; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .record-item.out { border-right-color:#ef4444; }
+  .record-item.leave { border-right-color:#f59e0b; background:var(--leave-bg); }
+  .record-item.late { border-right-color:#f97316; }
+  .record-item.offline { border-right-color:#f59e0b; border-right-style: dashed; background:#fffbeb; }
+  .record-content { flex:1; }
+  .record-item .meta { font-size:12px; color:var(--muted); margin-top:2px; }
+
   .action-btns { display:flex; flex-direction:column; gap:4px; }
-  .btn-icon { background:var(--chip-bg); color:var(--chip-text); border:none; border-radius:6px; padding:4px 8px; font-size:13px; cursor:pointer; font-weight:bold; }
+  .btn-icon { background:var(--chip-bg); color:var(--chip-text); border:none; border-radius:6px; padding:4px 8px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0; font-weight:bold; }
   .btn-icon.del { background:var(--danger-bg); color:#ef4444; }
-  .total-box { background:var(--total-bg); border-radius:8px; padding:10px; text-align:center; margin-top:8px; font-size:13px; }
+
+  .total-box { background:var(--total-bg); border-radius:8px; padding:10px; text-align:center; margin-top:8px; font-size:13px; color:var(--text); }
   .total-box strong { color:var(--total-text); }
   .employee-card { border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; }
   .employee-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .stats { font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
   .empty { text-align:center; color:var(--muted); padding:20px; font-size:13px; }
   .branch-item { display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--record-bg); border-radius:6px; margin-bottom:4px; font-size:13px; }
-  details { margin-top:6px; } summary { cursor:pointer; color:#3b82f6; font-size:13px; padding:4px 0; }
-  #bootMsg { background:#fef3c7; color:#92400e; padding:10px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:10px; }
+  details { margin-top:6px; }
+  summary { cursor:pointer; color:#3b82f6; font-size:13px; padding:4px 0; }
+  #bootMsg { background:#fef3c7; color:#92400e; padding:10px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:10px; transition:0.3s; }
+  body.dark #bootMsg { background:#78350f; color:#fcd34d; }
   #offlineBanner { display:none; background:#ef4444; color:white; padding:10px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:10px; font-weight:bold; }
+
   .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000; padding:20px; }
   .modal-overlay.active { display:flex; }
-  .modal-box { background:var(--card); color:var(--text); border-radius:12px; padding:20px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; }
-  .modal-box h3 { margin:0 0 16px; font-size:16px; text-align:center; }
-  .modal-actions { display:flex; gap:8px; margin-top:16px; } .modal-actions button { margin:0; }
-  .calendar-row { display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border); font-size:13px; }
-  .calendar-row .day-info { display:flex; flex-direction:column; } .calendar-row .status { font-size:11px; margin-top:2px; }
-  .calendar-row.status-present { background:var(--present-bg); } .calendar-row.status-leave { background:var(--leave-bg); }
-  .calendar-row.status-empty { color:var(--muted); } .calendar-row.today { border-right:3px solid #3b82f6; }
+  .modal-box { background:var(--card); color:var(--text); border-radius:12px; padding:20px; width:100%; max-width:420px; box-shadow:0 4px 12px rgba(0,0,0,0.15); max-height:90vh; overflow-y:auto; }
+  .modal-box h3 { margin:0 0 16px; font-size:16px; color:var(--text); text-align:center; }
+  .modal-actions { display:flex; gap:8px; margin-top:16px; }
+  .modal-actions button { margin:0; }
+
+  .calendar-row { display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+  .calendar-row:last-child { border-bottom:none; }
+  .calendar-row .day-info { display:flex; flex-direction:column; }
+  .calendar-row .status { font-size:11px; margin-top:2px; }
+  .calendar-row.status-present { background:var(--present-bg); }
+  .calendar-row.status-leave { background:var(--leave-bg); }
+  .calendar-row.status-empty { color:var(--muted); }
+  .calendar-row.today { border-right:3px solid #3b82f6; }
+
   .cal-summary { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
   .cal-summary .box { flex:1; min-width:80px; background:var(--record-bg); padding:10px; border-radius:8px; text-align:center; font-size:12px; color:var(--muted); }
   .cal-summary .box strong { display:block; font-size:16px; color:var(--total-text); margin-bottom:4px; }
+
+  .search-input { background:var(--record-bg); border-color:var(--input-border); }
+
   #toastContainer { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:3000; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
-  .toast { background:#1f2937; color:#fff; padding:10px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,.2); animation:slideDown .3s ease; }
-  .toast.success { background:#065f46; } .toast.error { background:#991b1b; } .toast.warning { background:#92400e; } .toast.info { background:#1e40af; }
+  .toast { background:#1f2937; color:#fff; padding:10px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,.2); animation:slideDown .3s ease; max-width:90vw; }
+  .toast.success { background:#065f46; }
+  .toast.error { background:#991b1b; }
+  .toast.warning { background:#92400e; }
+  .toast.info { background:#1e40af; }
   @keyframes slideDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
   .header-actions { display:flex; gap:6px; justify-content:flex-end; margin-bottom:8px; }
   .header-actions button { width:auto; padding:6px 10px; font-size:12px; margin:0; }
+
   #pinScreen { position:fixed; inset:0; background:var(--bg); z-index:2000; display:none; align-items:center; justify-content:center; flex-direction:column; padding:20px; }
   #pinScreen.active { display:flex; }
-  .pin-box { background:var(--card); border-radius:16px; padding:24px; max-width:320px; width:100%; text-align:center; }
+  .pin-box { background:var(--card); border-radius:16px; padding:24px; max-width:320px; width:100%; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.15); }
+  .pin-box h2 { color:var(--text); margin-bottom:16px; }
   .pin-dots { display:flex; justify-content:center; gap:12px; margin:20px 0; }
-  .pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid #3b82f6; } .pin-dot.filled { background:#3b82f6; }
+  .pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid #3b82f6; }
+  .pin-dot.filled { background:#3b82f6; }
   .pin-keys { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:16px; }
   .pin-keys button { padding:16px 0; font-size:18px; font-weight:bold; background:var(--record-bg); color:var(--text); border:1px solid var(--input-border); }
-  .pin-keys button[data-val="clear"] { background:#f59e0b; color:#fff; } .pin-keys button[data-val="del"] { background:#ef4444; color:#fff; }
+  .pin-keys button[data-val="clear"] { background:#f59e0b; color:#fff; }
+  .pin-keys button[data-val="del"] { background:#ef4444; color:#fff; }
   .pin-error { color:#ef4444; font-size:12px; margin-top:8px; min-height:18px; }
+
   .dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
   .dash-card { background:var(--card); border-radius:12px; padding:14px; text-align:center; }
   .dash-card .label { font-size:12px; color:var(--muted); margin-bottom:6px; }
   .dash-card .value { font-size:24px; font-weight:bold; color:#3b82f6; }
-  .dash-card .value.green { color:#10b981; } .dash-card .value.orange { color:#f59e0b; } .dash-card .value.red { color:#ef4444; }
+  .dash-card .value.green { color:#10b981; }
+  .dash-card .value.orange { color:#f59e0b; }
+  .dash-card .value.red { color:#ef4444; }
   .dash-card .sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
   .settings-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
-  .settings-row:last-child { border-bottom:none; } .settings-row label { font-size:13px; color:var(--text); }
-  .settings-row input[type="time"] { width:120px; margin:0; } .settings-row input[type="checkbox"] { width:auto; margin:0; }
+  .settings-row:last-child { border-bottom:none; }
+  .settings-row label { font-size:13px; color:var(--text); }
+  .settings-row input[type="time"] { width:120px; margin:0; }
+  .settings-row input[type="checkbox"] { width:auto; margin:0; }
 </style>
 </head>
 <body>
@@ -100,7 +141,9 @@
 <div id="pinScreen">
   <div class="pin-box">
     <h2>🔐 ورود به سیستم</h2>
-    <div class="pin-dots" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
     <div class="pin-error" id="pinError"></div>
     <div class="pin-keys">
       <button data-val="1">۱</button><button data-val="2">۲</button><button data-val="3">۳</button>
@@ -112,6 +155,7 @@
 </div>
 
 <div id="toastContainer"></div>
+
 <div id="bootMsg">در حال راه‌اندازی...</div>
 <div id="offlineBanner">⚠️ اینترنت قطع است. ثبت ورود فعال است و اطلاعات روی گوشی ذخیره می‌شود.</div>
 
@@ -119,59 +163,104 @@
   <div class="modal-box">
     <h3>✏️ ویرایش زمان تردد</h3>
     <input type="hidden" id="editRecId">
-    <label style="font-size:12px; color:var(--muted);">ساعت ورود (HH:mm)</label><input type="time" id="editCheckIn">
-    <label style="font-size:12px; color:var(--muted);">ساعت خروج (HH:mm)</label><input type="time" id="editCheckOut">
-    <div class="modal-actions"><button class="primary" onclick="saveEditTime()">💾 ذخیره</button><button class="danger" onclick="closeEditModal()">انصراف</button></div>
+    <label style="font-size:12px; color:var(--muted);">ساعت ورود (HH:mm)</label>
+    <input type="time" id="editCheckIn">
+    <label style="font-size:12px; color:var(--muted);">ساعت خروج (HH:mm)</label>
+    <input type="time" id="editCheckOut">
+    <div class="modal-actions">
+      <button class="primary" onclick="saveEditTime()">💾 ذخیره</button>
+      <button class="danger" onclick="closeEditModal()">انصراف</button>
+    </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="calendarEditModal">
   <div class="modal-box">
     <h3 id="calModalTitle">ویرایش روز</h3>
-    <input type="hidden" id="calRecId"><input type="hidden" id="calWorkDate"><input type="hidden" id="calEmpId"><input type="hidden" id="calBranchId">
-    <label style="font-size:12px; color:var(--muted);">ساعت ورود</label><input type="time" id="calCheckIn">
-    <label style="font-size:12px; color:var(--muted);">ساعت خروج</label><input type="time" id="calCheckOut">
+    <input type="hidden" id="calRecId">
+    <input type="hidden" id="calWorkDate">
+    <input type="hidden" id="calEmpId">
+    <input type="hidden" id="calBranchId">
+
+    <label style="font-size:12px; color:var(--muted);">ساعت ورود</label>
+    <input type="time" id="calCheckIn">
+
+    <label style="font-size:12px; color:var(--muted);">ساعت خروج</label>
+    <input type="time" id="calCheckOut">
+
     <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="calIsLeave" style="width:auto; margin:0;"><label for="calIsLeave" style="font-size:14px;">ثبت به عنوان مرخصی تمام روز</label>
+      <input type="checkbox" id="calIsLeave" style="width:auto; margin:0;">
+      <label for="calIsLeave" style="font-size:14px; cursor:pointer;">ثبت به عنوان مرخصی تمام روز</label>
     </div>
-    <div class="modal-actions"><button class="primary" onclick="saveCalendarEdit()">💾 ذخیره</button><button class="danger" onclick="closeCalendarModal()">انصراف</button></div>
+
+    <div class="modal-actions">
+      <button class="primary" onclick="saveCalendarEdit()">💾 ذخیره</button>
+      <button class="danger" onclick="closeCalendarModal()">انصراف</button>
+    </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="settingsModal">
   <div class="modal-box">
     <h3>⚙️ تنظیمات</h3>
-    <div class="settings-row"><label>ساعت شروع کاری</label><input type="time" id="setStartTime" value="08:00"></div>
-    <div class="settings-row"><label>ساعت پایان کاری</label><input type="time" id="setEndTime" value="17:00"></div>
-    <div class="settings-row"><label>حالت تاریک</label><input type="checkbox" id="setDarkMode"></div>
-    <div class="settings-row"><label>فعال‌سازی قفل PIN</label><input type="checkbox" id="setPinEnabled"></div>
-    <div style="margin-top:12px;"><label style="font-size:12px; color:var(--muted);">تغییر PIN (۴ رقم)</label><input type="password" id="setPinValue" maxlength="4" inputmode="numeric" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
-    <div class="modal-actions"><button class="primary" onclick="saveSettings()">💾 ذخیره</button><button class="ghost" onclick="document.getElementById('settingsModal').classList.remove('active')">انصراف</button></div>
+    <div class="settings-row">
+      <label>ساعت شروع کاری</label>
+      <input type="time" id="setStartTime" value="08:00">
+    </div>
+    <div class="settings-row">
+      <label>ساعت پایان کاری</label>
+      <input type="time" id="setEndTime" value="17:00">
+    </div>
+    <div class="settings-row">
+      <label>حالت تاریک</label>
+      <input type="checkbox" id="setDarkMode">
+    </div>
+    <div class="settings-row">
+      <label>فعال‌سازی قفل PIN</label>
+      <input type="checkbox" id="setPinEnabled">
+    </div>
+    <div style="margin-top:12px;">
+      <label style="font-size:12px; color:var(--muted);">تغییر PIN (۴ رقم)</label>
+      <input type="password" id="setPinValue" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; letter-spacing:8px; font-size:20px;">
+    </div>
+    <div class="modal-actions">
+      <button class="primary" onclick="saveSettings()">💾 ذخیره</button>
+      <button class="ghost" onclick="document.getElementById('settingsModal').classList.remove('active')">انصراف</button>
+    </div>
   </div>
 </div>
 
 <div class="header-actions">
-  <button class="ghost" onclick="openSettings()">⚙️ تنظیمات</button><button class="ghost" onclick="logout()">🚪 خروج</button>
+  <button class="ghost" onclick="openSettings()">⚙️ تنظیمات</button>
+  <button class="ghost" onclick="logout()">🚪 خروج</button>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="attendance">ثبت تردد</div><div class="tab" data-tab="dashboard">داشبورد</div>
-  <div class="tab" data-tab="calendar">تقویم</div><div class="tab" data-tab="employees">پرسنل</div>
-  <div class="tab" data-tab="branches">شعبه‌ها</div><div class="tab" data-tab="reports">گزارش‌ها</div>
+  <div class="tab active" data-tab="attendance">ثبت تردد</div>
+  <div class="tab" data-tab="dashboard">داشبورد</div>
+  <div class="tab" data-tab="calendar">تقویم</div>
+  <div class="tab" data-tab="employees">پرسنل</div>
+  <div class="tab" data-tab="branches">شعبه‌ها</div>
+  <div class="tab" data-tab="reports">گزارش‌ها</div>
 </div>
 
 <div class="section active" id="sec-attendance">
   <div class="card">
     <h2>⏰ ثبت ورود / خروج / مرخصی</h2>
-    <div class="date-display" id="todayDate">---</div><div class="time-display" id="liveClock">--:--:--</div>
+    <div class="date-display" id="todayDate">---</div>
+    <div class="time-display" id="liveClock">--:--:--</div>
     <input type="text" id="empSearchInput" class="search-input" placeholder="🔍 جستجوی پرسنل..." style="margin-bottom:4px;">
     <select id="empSelect"><option value="">انتخاب پرسنل...</option></select>
     <select id="branchSelect"><option value="">انتخاب شعبه...</option></select>
-    <button id="btnCheckIn">✅ ثبت ورود</button><button id="btnCheckOut" class="danger">🚪 ثبت خروج</button><button id="btnLeave" class="warning">🌴 ثبت مرخصی (امروز)</button>
+    <button id="btnCheckIn">✅ ثبت ورود</button>
+    <button id="btnCheckOut" class="danger">🚪 ثبت خروج</button>
+    <button id="btnLeave" class="warning">🌴 ثبت مرخصی (امروز)</button>
   </div>
   <div class="card">
     <h2>📋 سوابق امروز (همه پرسنل)</h2>
-    <select id="todayBranchFilter" style="background:var(--record-bg); font-size:13px;"><option value="all">🏢 همه شعبه‌ها</option></select>
+    <select id="todayBranchFilter" style="background:var(--record-bg); border-color:var(--input-border); font-size:13px;">
+      <option value="all">🏢 همه شعبه‌ها</option>
+    </select>
     <div id="todayRecords"><div class="empty">در حال بارگذاری...</div></div>
     <div class="total-box">جمع کارکرد امروز: <strong id="dailyTotal">۰</strong> دقیقه</div>
   </div>
@@ -181,16 +270,43 @@
   <div class="card">
     <h2>📊 داشبورد آماری</h2>
     <div class="dash-grid">
-      <div class="dash-card"><div class="label">👥 حاضر امروز</div><div class="value green" id="dashPresentToday">۰</div></div>
-      <div class="dash-card"><div class="label">🌴 مرخصی امروز</div><div class="value orange" id="dashLeaveToday">۰</div></div>
-      <div class="dash-card"><div class="label">⏱️ کارکرد امروز</div><div class="value" id="dashTotalToday">۰</div><div class="sub">ساعت</div></div>
-      <div class="dash-card"><div class="label">📅 کارکرد ماه</div><div class="value" id="dashTotalMonth">۰</div><div class="sub">ساعت</div></div>
-      <div class="dash-card"><div class="label">⚠️ تأخیر ماه</div><div class="value red" id="dashLateMonth">۰</div><div class="sub">مورد</div></div>
-      <div class="dash-card"><div class="label">👤 کل پرسنل</div><div class="value" id="dashTotalEmp">۰</div></div>
+      <div class="dash-card">
+        <div class="label">👥 حاضر امروز</div>
+        <div class="value green" id="dashPresentToday">۰</div>
+        <div class="sub">نفر</div>
+      </div>
+      <div class="dash-card">
+        <div class="label">🌴 مرخصی امروز</div>
+        <div class="value orange" id="dashLeaveToday">۰</div>
+        <div class="sub">نفر</div>
+      </div>
+      <div class="dash-card">
+        <div class="label">⏱️ کارکرد امروز</div>
+        <div class="value" id="dashTotalToday">۰</div>
+        <div class="sub">ساعت</div>
+      </div>
+      <div class="dash-card">
+        <div class="label">📅 کارکرد ماه</div>
+        <div class="value" id="dashTotalMonth">۰</div>
+        <div class="sub">ساعت</div>
+      </div>
+      <div class="dash-card">
+        <div class="label">⚠️ تأخیر ماه</div>
+        <div class="value red" id="dashLateMonth">۰</div>
+        <div class="sub">مورد</div>
+      </div>
+      <div class="dash-card">
+        <div class="label">👤 کل پرسنل</div>
+        <div class="value" id="dashTotalEmp">۰</div>
+        <div class="sub">نفر</div>
+      </div>
     </div>
-    <button class="primary" onclick="loadDashboard()">🔄 به‌روزرسانی</button>
+    <button class="primary" onclick="loadDashboard()" style="margin-top:8px;">🔄 به‌روزرسانی</button>
   </div>
-  <div class="card"><h2>🏆 برترین‌های ماه</h2><div id="dashTopList"><div class="empty">در حال بارگذاری...</div></div></div>
+  <div class="card">
+    <h2>🏆 برترین‌های ماه (بیشترین کارکرد)</h2>
+    <div id="dashTopList"><div class="empty">در حال بارگذاری...</div></div>
+  </div>
 </div>
 
 <div class="section" id="sec-calendar">
@@ -199,38 +315,73 @@
     <select id="calEmpSelect" style="margin-bottom:6px;"><option value="">انتخاب پرسنل...</option></select>
     <div style="display:flex; gap:6px;">
       <select id="calMonthSelect" style="flex:2;">
-        <option value="1">فروردین</option><option value="2">اردیبهشت</option><option value="3">خرداد</option><option value="4">تیر</option><option value="5">مرداد</option><option value="6">شهریور</option><option value="7">مهر</option><option value="8">آبان</option><option value="9">آذر</option><option value="10">دی</option><option value="11">بهمن</option><option value="12">اسفند</option>
-      </select><select id="calYearSelect" style="flex:1;"></select>
+        <option value="1">فروردین</option>
+        <option value="2">اردیبهشت</option>
+        <option value="3">خرداد</option>
+        <option value="4">تیر</option>
+        <option value="5">مرداد</option>
+        <option value="6">شهریور</option>
+        <option value="7">مهر</option>
+        <option value="8">آبان</option>
+        <option value="9">آذر</option>
+        <option value="10">دی</option>
+        <option value="11">بهمن</option>
+        <option value="12">اسفند</option>
+      </select>
+      <select id="calYearSelect" style="flex:1;"></select>
     </div>
     <div class="cal-summary" id="calSummary" style="margin-top:12px; display:none;">
-      <div class="box"><strong id="calSummaryWork">۰</strong>کارکرد (ساعت)</div><div class="box"><strong id="calSummaryLeave">۰</strong>مرخصی (روز)</div>
+      <div class="box"><strong id="calSummaryWork">۰</strong>کارکرد (ساعت)</div>
+      <div class="box"><strong id="calSummaryLeave">۰</strong>مرخصی (روز)</div>
+      <div class="box"><strong id="calSummaryDays">۰</strong>روز ثبت‌شده</div>
     </div>
     <div id="calendarList" style="margin-top:12px;"><div class="empty">ابتدا پرسنل را انتخاب کنید</div></div>
   </div>
 </div>
 
 <div class="section" id="sec-employees">
-  <div class="card"><h2>👤 افزودن پرسنل</h2><input type="text" id="newEmpName" placeholder="نام و نام خانوادگی"><select id="newEmpBranch"><option value="">شعبه (اختیاری)...</option></select><button id="btnAddEmp" class="primary">➕ افزودن</button></div>
-  <div class="card"><h2>📃 لیست پرسنل</h2><div id="employeesList"><div class="empty">در حال بارگذاری...</div></div></div>
+  <div class="card">
+    <h2>👤 افزودن پرسنل</h2>
+    <input type="text" id="newEmpName" placeholder="نام و نام خانوادگی">
+    <select id="newEmpBranch"><option value="">شعبه (اختیاری)...</option></select>
+    <button id="btnAddEmp" class="primary">➕ افزودن</button>
+  </div>
+  <div class="card">
+    <h2>📃 لیست پرسنل</h2>
+    <div id="employeesList"><div class="empty">در حال بارگذاری...</div></div>
+  </div>
 </div>
 
 <div class="section" id="sec-branches">
-  <div class="card"><h2>🏢 افزودن شعبه</h2><input type="text" id="newBranchName" placeholder="نام شعبه"><button id="btnAddBranch" class="primary">➕ افزودن</button></div>
-  <div class="card"><h2>📃 لیست شعبه‌ها</h2><div id="branchesList"><div class="empty">در حال بارگذاری...</div></div></div>
+  <div class="card">
+    <h2>🏢 افزودن شعبه</h2>
+    <input type="text" id="newBranchName" placeholder="نام شعبه">
+    <button id="btnAddBranch" class="primary">➕ افزودن</button>
+  </div>
+  <div class="card">
+    <h2>📃 لیست شعبه‌ها</h2>
+    <div id="branchesList"><div class="empty">در حال بارگذاری...</div></div>
+  </div>
 </div>
 
 <div class="section" id="sec-reports">
   <div class="card">
     <h2>📊 گزارش ماهانه</h2>
     <div class="stats" id="monthlyRange"></div>
-    <select id="reportEmpFilter" style="margin-top:10px; background:var(--record-bg); font-weight:bold;"><option value="all">👥 نمایش همه پرسنل</option></select>
-    <input type="text" id="reportSearch" class="search-input" placeholder="🔍 جستجو..." style="margin-top:6px;">
+
+    <select id="reportEmpFilter" style="margin-top:10px; background:var(--record-bg); border-color:var(--input-border); font-weight:bold;">
+      <option value="all">👥 نمایش همه پرسنل</option>
+    </select>
+
+    <input type="text" id="reportSearch" class="search-input" placeholder="🔍 جستجو در نتایج..." style="margin-top:6px;">
+
     <div style="display:flex; gap:6px; margin-top:8px;">
       <button id="btnExportExcel" class="primary" style="background:#0f766e; margin:0;">📥 اکسل (تک‌نفر)</button>
       <button onclick="exportAllEmployees()" class="primary" style="background:#7c3aed; margin:0;">📦 اکسل (همه)</button>
     </div>
+
     <div id="reportsList" style="margin-top:12px;"><div class="empty">در حال بارگذاری...</div></div>
-    <div class="total-box">جمع کل ماه: <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
+    <div class="total-box">جمع کل ماه (بر اساس فیلتر): <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
   </div>
 </div>
 
@@ -238,31 +389,49 @@
 const SUPABASE_URL = 'https://fvuxccwxmvdtsfdavmyx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2dXhjY3d4bXZkdHNmZGF2bXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3ODI4NjIsImV4cCI6MjEwODM1ODg2Mn0.m397fvHBUaGmRRXJhaXlveYW5Yr-vpkmGr9MywqWut4';
 
-const LS_KEYS = { emp: 'timesheet_last_emp', branch: 'timesheet_last_branch', reportEmp: 'timesheet_last_report_emp', todayBranch: 'timesheet_today_branch', settings: 'timesheet_settings', pinEnabled: 'timesheet_pin_enabled', pinHash: 'timesheet_pin_hash', auth: 'timesheet_auth_session', theme: 'timesheet_theme', offlineQueue: 'timesheet_offline_queue' };
-const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00' };
-const appState = { ready:false, db:null, branches:[], employees:[], settings:{...DEFAULT_SETTINGS}, channel:null };
+const LS_KEYS = {
+  emp: 'timesheet_last_emp',
+  branch: 'timesheet_last_branch',
+  reportEmp: 'timesheet_last_report_emp',
+  todayBranch: 'timesheet_today_branch',
+  settings: 'timesheet_settings',
+  pinEnabled: 'timesheet_pin_enabled',
+  pinHash: 'timesheet_pin_hash',
+  auth: 'timesheet_auth_session',
+  theme: 'timesheet_theme',
+  offlineQueue: 'timesheet_offline_queue'
+};
 
-function getTimeParts(localIsoString) {
-  if (!localIsoString) return { str: '---', mins: 0 };
-  const timePart = localIsoString.split('T')[1];
-  if (!timePart) return { str: '---', mins: 0 };
-  const [h, m] = timePart.split(':').map(Number);
-  return { str: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, mins: (h*60)+m };
-}
-function getNowLocalIso() {
-  const d = new Date(); const y = d.getFullYear(); const mo = String(d.getMonth()+1).padStart(2,'0'); const da = String(d.getDate()).padStart(2,'0');
-  const h = String(d.getHours()).padStart(2,'0'); const mi = String(d.getMinutes()).padStart(2,'0'); const s = String(d.getSeconds()).padStart(2,'0');
-  return `${y}-${mo}-${da}T${h}:${mi}:${s}`;
-}
+const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00' };
+
+const app = { ready:false, db:null, branches:[], employees:[], settings:{...DEFAULT_SETTINGS}, channel:null };
+
+// ---------- Toast ----------
 function toast(msg, type='info', duration=2800) {
-  const c = document.getElementById('toastContainer'); if (!c) return;
-  const el = document.createElement('div'); el.className = 'toast ' + type; el.textContent = msg;
-  c.appendChild(el); setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+  const c = document.getElementById('toastContainer');
+  if (!c) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
 }
-function getLocalDateStr(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-function getJalaliParts(date) { const p = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date).split('/'); return { year: parseInt(p[0]), month: parseInt(p[1]), day: parseInt(p[2]) }; }
+
+// ---------- تاریخ ----------
+function getLocalDateStr(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function getJalaliParts(date) {
+  const jStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+  const parts = jStr.split('/');
+  return { year: parseInt(parts[0]), month: parseInt(parts[1]), day: parseInt(parts[2]) };
+}
 function getGregorianFromJalali(jy, jm, jd) {
-  let baseYear = jy + 621, startOfYear = null;
+  let baseYear = jy + 621;
+  let startOfYear = null;
   for (let testYear = baseYear; testYear <= baseYear + 1 && !startOfYear; testYear++) {
     for (let d = 19; d <= 22; d++) {
       const testDate = new Date(Date.UTC(testYear, 2, d, 12, 0, 0));
@@ -271,386 +440,904 @@ function getGregorianFromJalali(jy, jm, jd) {
     }
   }
   if (!startOfYear) startOfYear = new Date(Date.UTC(baseYear, 2, 21, 12, 0, 0));
-  let monthDays = 0; for (let m = 1; m < jm; m++) monthDays += (m <= 6 ? 31 : 30);
-  const result = new Date(startOfYear); result.setUTCDate(result.getUTCDate() + monthDays + (jd - 1)); return result;
+  let monthDays = 0;
+  for (let m = 1; m < jm; m++) monthDays += (m <= 6 ? 31 : 30);
+  const result = new Date(startOfYear);
+  result.setUTCDate(result.getUTCDate() + monthDays + (jd - 1));
+  return result;
 }
-function getJalaliMonthDays(jy, jm) { const start = getGregorianFromJalali(jy, jm, 1); const nextMonth = jm === 12 ? getGregorianFromJalali(jy + 1, 1, 1) : getGregorianFromJalali(jy, jm + 1, 1); return Math.round((nextMonth - start) / 86400000); }
-function getJalaliMonthRangeGregorian(jy, jm) { const days = getJalaliMonthDays(jy, jm); return { start: getGregorianFromJalali(jy, jm, 1), end: getGregorianFromJalali(jy, jm, days) }; }
+function getJalaliMonthDays(jy, jm) {
+  const start = getGregorianFromJalali(jy, jm, 1);
+  const nextMonth = jm === 12 ? getGregorianFromJalali(jy + 1, 1, 1) : getGregorianFromJalali(jy, jm + 1, 1);
+  return Math.round((nextMonth - start) / 86400000);
+}
+function getJalaliMonthRangeGregorian(jy, jm) {
+  const days = getJalaliMonthDays(jy, jm);
+  return { start: getGregorianFromJalali(jy, jm, 1), end: getGregorianFromJalali(jy, jm, days) };
+}
 
+// ---------- نمایش ----------
 function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
+function timeFa(d){ return new Date(d).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}); }
+function minutesBetween(a,b){ return Math.round((new Date(b)-new Date(a))/60000); }
 function minutesToHM(m){ return { h: Math.floor(m/60), m: Math.round(m%60) }; }
-function getTimeForInput(localIsoString) { if (!localIsoString) return ''; const parts = getTimeParts(localIsoString); return parts.str === '---' ? '' : parts.str; }
+function getTimeForInput(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 function setBoot(msg, isError){
-  const el = document.getElementById('bootMsg'); if (!el) return;
-  el.textContent = msg; el.style.background = isError ? '#fee2e2' : '#d1fae5'; el.style.color = isError ? '#991b1b' : '#065f46';
+  const el = document.getElementById('bootMsg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = isError ? '#fee2e2' : '#d1fae5';
+  el.style.color = isError ? '#991b1b' : '#065f46';
   if (!isError) setTimeout(() => { el.style.display = 'none'; }, 2500);
 }
 function updateClock(){
-  const now = new Date(); const c = document.getElementById('liveClock'); const d = document.getElementById('todayDate');
+  const now = new Date();
+  const c = document.getElementById('liveClock');
+  const d = document.getElementById('todayDate');
   if (c) c.textContent = now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   if (d) d.textContent = toJalali(now);
 }
-setInterval(updateClock, 1000); updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 
+// ---------- مدیریت آفلاین ----------
 function updateOnlineStatus() {
-  const banner = document.getElementById('offlineBanner'); if (!banner) return;
-  if (navigator.onLine) { banner.style.display = 'none'; syncOfflineQueue(); } else { banner.style.display = 'block'; }
-  loadTodayRecords(); 
+  const banner = document.getElementById('offlineBanner');
+  if (!banner) return;
+  if (navigator.onLine) {
+    banner.style.display = 'none';
+    syncOfflineQueue(); 
+  } else {
+    banner.style.display = 'block';
+  }
+  loadTodayRecords();
 }
-window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); setTimeout(updateOnlineStatus, 500);
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+setTimeout(updateOnlineStatus, 500);
 
 async function syncOfflineQueue() {
-  if (!appState.db || !appState.ready) return;
-  const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]'); if (!queue.length) return;
+  if (!app.db || !app.ready) return;
+  const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
+  if (!queue.length) return;
+
   let successCount = 0;
-  for (const item of queue) { const { error } = await appState.db.from('attendance').insert(item); if (!error) successCount++; }
+  for (const item of queue) {
+    const { error } = await app.db.from('attendance').insert(item);
+    if (!error) successCount++;
+  }
+
   if (successCount > 0) {
-    localStorage.setItem(LS_KEYS.offlineQueue, '[]'); toast(`✅ ${successCount} رکورد آفلاین به سرور ارسال شد.`, 'success', 4000); loadTodayRecords();
+    localStorage.setItem(LS_KEYS.offlineQueue, '[]');
+    toast(`✅ ${successCount} رکورد آفلاین به سرور ارسال شد.`, 'success', 4000);
+    loadTodayRecords();
   }
 }
 
-function isLate(checkInStr) {
-  if (!checkInStr || !appState.settings.startTime) return false;
-  const inMins = getTimeParts(checkInStr).mins; const [sh, sm] = appState.settings.startTime.split(':').map(Number);
-  return inMins > ((sh * 60) + sm) + 5;
+// ---------- تشخیص تأخیر ----------
+function isLate(checkInIso, workDate) {
+  if (!checkInIso || !app.settings.startTime) return false;
+  const d = new Date(checkInIso);
+  const [sh, sm] = app.settings.startTime.split(':').map(Number);
+  const startMinutes = sh * 60 + sm;
+  const actualMinutes = d.getHours() * 60 + d.getMinutes();
+  return actualMinutes > startMinutes + 5;
 }
-function getLateMinutes(checkInStr) {
-  if (!checkInStr) return 0;
-  const inMins = getTimeParts(checkInStr).mins; const [sh, sm] = appState.settings.startTime.split(':').map(Number);
-  return Math.max(0, inMins - ((sh * 60) + sm));
+function getLateMinutes(checkInIso) {
+  if (!checkInIso) return 0;
+  const d = new Date(checkInIso);
+  const [sh, sm] = app.settings.startTime.split(':').map(Number);
+  return Math.max(0, (d.getHours() * 60 + d.getMinutes()) - (sh * 60 + sm));
 }
 
-function loadSettings() { try { const s = localStorage.getItem(LS_KEYS.settings); if (s) appState.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) }; } catch(e) {} }
-function saveSettingsToLS() { localStorage.setItem(LS_KEYS.settings, JSON.stringify(appState.settings)); }
-function applyTheme() { const dark = localStorage.getItem(LS_KEYS.theme) === 'dark'; document.body.classList.toggle('dark', dark); }
-
+// ---------- تنظیمات ----------
+function loadSettings() {
+  try {
+    const s = localStorage.getItem(LS_KEYS.settings);
+    if (s) app.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
+  } catch(e) {}
+}
+function saveSettingsToLS() { localStorage.setItem(LS_KEYS.settings, JSON.stringify(app.settings)); }
+function applyTheme() {
+  const dark = localStorage.getItem(LS_KEYS.theme) === 'dark';
+  document.body.classList.toggle('dark', dark);
+}
 function openSettings() {
-  document.getElementById('setStartTime').value = appState.settings.startTime; document.getElementById('setEndTime').value = appState.settings.endTime;
-  document.getElementById('setDarkMode').checked = document.body.classList.contains('dark'); document.getElementById('setPinEnabled').checked = localStorage.getItem(LS_KEYS.pinEnabled) === 'true';
-  document.getElementById('setPinValue').value = ''; document.getElementById('settingsModal').classList.add('active');
+  document.getElementById('setStartTime').value = app.settings.startTime;
+  document.getElementById('setEndTime').value = app.settings.endTime;
+  document.getElementById('setDarkMode').checked = document.body.classList.contains('dark');
+  document.getElementById('setPinEnabled').checked = localStorage.getItem(LS_KEYS.pinEnabled) === 'true';
+  document.getElementById('setPinValue').value = '';
+  document.getElementById('settingsModal').classList.add('active');
 }
 function saveSettings() {
-  const st = document.getElementById('setStartTime').value || '08:00'; const en = document.getElementById('setEndTime').value || '17:00';
-  const dark = document.getElementById('setDarkMode').checked; const pinEnabled = document.getElementById('setPinEnabled').checked; const newPin = document.getElementById('setPinValue').value.trim();
-  appState.settings.startTime = st; appState.settings.endTime = en; saveSettingsToLS();
-  localStorage.setItem(LS_KEYS.theme, dark ? 'dark' : 'light'); applyTheme(); localStorage.setItem(LS_KEYS.pinEnabled, pinEnabled ? 'true' : 'false');
+  const st = document.getElementById('setStartTime').value || '08:00';
+  const en = document.getElementById('setEndTime').value || '17:00';
+  const dark = document.getElementById('setDarkMode').checked;
+  const pinEnabled = document.getElementById('setPinEnabled').checked;
+  const newPin = document.getElementById('setPinValue').value.trim();
+
+  app.settings.startTime = st;
+  app.settings.endTime = en;
+  saveSettingsToLS();
+
+  localStorage.setItem(LS_KEYS.theme, dark ? 'dark' : 'light');
+  applyTheme();
+  localStorage.setItem(LS_KEYS.pinEnabled, pinEnabled ? 'true' : 'false');
+
   if (newPin) {
     if (!/^\d{4}$/.test(newPin)) { toast('PIN باید ۴ رقم باشد', 'error'); return; }
-    localStorage.setItem(LS_KEYS.pinHash, btoa(newPin)); toast('PIN جدید ذخیره شد', 'success');
+    localStorage.setItem(LS_KEYS.pinHash, btoa(newPin));
+    toast('PIN جدید ذخیره شد', 'success');
   }
-  document.getElementById('settingsModal').classList.remove('active'); toast('تنظیمات ذخیره شد', 'success'); loadTodayRecords();
+  document.getElementById('settingsModal').classList.remove('active');
+  toast('تنظیمات ذخیره شد', 'success');
 }
 
-let pinBuffer = ''; let pinResolve = null;
+// ---------- PIN / Auth ----------
+let pinBuffer = '';
+let pinResolve = null;
+
 function requirePin() {
-  const enabled = localStorage.getItem(LS_KEYS.pinEnabled) === 'true'; const pinHash = localStorage.getItem(LS_KEYS.pinHash);
+  const enabled = localStorage.getItem(LS_KEYS.pinEnabled) === 'true';
+  const pinHash = localStorage.getItem(LS_KEYS.pinHash);
   if (!enabled || !pinHash) return Promise.resolve(true);
   if (localStorage.getItem(LS_KEYS.auth) === 'yes') return Promise.resolve(true);
-  return new Promise((resolve) => { pinBuffer = ''; pinResolve = resolve; updatePinDots(); document.getElementById('pinScreen').classList.add('active'); });
+
+  return new Promise((resolve) => {
+    pinBuffer = '';
+    pinResolve = resolve;
+    updatePinDots();
+    document.getElementById('pinScreen').classList.add('active');
+  });
 }
+
 function updatePinDots() {
-  const dots = document.querySelectorAll('#pinDots .pin-dot'); dots.forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
+  const dots = document.querySelectorAll('#pinDots .pin-dot');
+  dots.forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
   document.getElementById('pinError').textContent = '';
 }
+
 document.querySelectorAll('.pin-keys button').forEach(btn => {
   btn.addEventListener('click', () => {
     const val = btn.dataset.val;
-    if (val === 'clear') { pinBuffer = ''; } else if (val === 'del') { pinBuffer = pinBuffer.slice(0, -1); } else if (pinBuffer.length < 4) { pinBuffer += val; }
+    if (val === 'clear') { pinBuffer = ''; }
+    else if (val === 'del') { pinBuffer = pinBuffer.slice(0, -1); }
+    else if (pinBuffer.length < 4) { pinBuffer += val; }
     updatePinDots();
+
     if (pinBuffer.length === 4) {
-      if (btoa(pinBuffer) === localStorage.getItem(LS_KEYS.pinHash)) {
-        localStorage.setItem(LS_KEYS.auth, 'yes'); document.getElementById('pinScreen').classList.remove('active');
+      const stored = localStorage.getItem(LS_KEYS.pinHash);
+      if (btoa(pinBuffer) === stored) {
+        localStorage.setItem(LS_KEYS.auth, 'yes');
+        document.getElementById('pinScreen').classList.remove('active');
         if (pinResolve) { pinResolve(true); pinResolve = null; }
-      } else { document.getElementById('pinError').textContent = '❌ PIN اشتباه است'; pinBuffer = ''; setTimeout(updatePinDots, 500); }
+      } else {
+        document.getElementById('pinError').textContent = '❌ PIN اشتباه است';
+        pinBuffer = '';
+        setTimeout(updatePinDots, 500);
+      }
     }
   });
 });
-function logout() { if (!confirm('از سیستم خارج می‌شوید؟')) return; localStorage.removeItem(LS_KEYS.auth); location.reload(); }
 
+function logout() {
+  if (!confirm('از سیستم خارج می‌شوید؟ (برای ورود مجدد به PIN نیاز دارید)')) return;
+  localStorage.removeItem(LS_KEYS.auth);
+  location.reload();
+}
+
+// ---------- Tabs ----------
 function setupTabs(){
-  const tabs = document.querySelectorAll('.tab'); const secs = document.querySelectorAll('.section');
+  const tabs = document.querySelectorAll('.tab');
+  const secs = document.querySelectorAll('.section');
   tabs.forEach(t => {
     t.addEventListener('click', () => {
-      tabs.forEach(x => x.classList.remove('active')); secs.forEach(x => x.classList.remove('active')); t.classList.add('active');
-      const s = document.getElementById('sec-' + t.dataset.tab); if (s) s.classList.add('active');
-      if (appState.ready) {
-        if (t.dataset.tab === 'reports') appState.loadReports(); if (t.dataset.tab === 'employees') appState.renderEmployees();
-        if (t.dataset.tab === 'branches') appState.renderBranches(); if (t.dataset.tab === 'calendar') initCalendarTab();
+      tabs.forEach(x => x.classList.remove('active'));
+      secs.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const s = document.getElementById('sec-' + t.dataset.tab);
+      if (s) s.classList.add('active');
+      if (app.ready) {
+        if (t.dataset.tab === 'reports') app.loadReports();
+        if (t.dataset.tab === 'employees') app.renderEmployees();
+        if (t.dataset.tab === 'branches') app.renderBranches();
+        if (t.dataset.tab === 'calendar') initCalendarTab();
         if (t.dataset.tab === 'dashboard') loadDashboard();
       }
     });
   });
 }
 
+// ---------- Init ----------
 async function initApp(){
-  if (typeof supabase === 'undefined' || !supabase.createClient) { setBoot('⚠️ کتابخانه Supabase لود نشد.', true); return; }
-  if (typeof XLSX === 'undefined') { setBoot('⚠️ کتابخانه اکسل لود نشد. دکمه دانلود از روش CSV استفاده می‌کند.', true); }
-  try { appState.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){ setBoot('⚠️ خطا اتصال Supabase: ' + e.message, true); return; }
-
-  if (!navigator.onLine) { setBoot('📴 شما آفلاین هستید. ورود در گوشی ذخیره می‌شود.', true); }
-  else {
-    try {
-      await loadBranches(); await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); fillTodayBranchFilter(); restoreSelections(); await loadTodayRecords();
-    } catch (err) { console.error(err); setBoot('❌ خطا در بارگذاری: ' + err.message, true); }
+  if (typeof supabase === 'undefined' || !supabase.createClient) {
+    setBoot('⚠️ کتابخانه Supabase لود نشد.', true); return;
   }
-  setupRealtime(); appState.ready = true; if (navigator.onLine) setBoot('✅ آماده است');
+  if (typeof XLSX === 'undefined') {
+    setBoot('⚠️ کتابخانه اکسل لود نشد. دکمه دانلود از روش CSV استفاده می‌کند.', true);
+  }
+  try {
+    app.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch(e){
+    setBoot('⚠️ خطا اتصال Supabase: ' + e.message, true); return;
+  }
+
+  if (!navigator.onLine) {
+    setBoot('📴 شما آفلاین هستید. ورود در گوشی ذخیره می‌شود.', true);
+  } else {
+    try {
+      await loadBranches();
+      await loadEmployees();
+      fillEmpSelect();
+      fillReportFilter();
+      fillCalEmpSelect();
+      fillTodayBranchFilter();
+      restoreSelections();
+      await loadTodayRecords();
+    } catch (err) {
+      console.error(err);
+      setBoot('❌ خطا در بارگذاری: ' + err.message, true);
+    }
+  }
+  setupRealtime();
+  app.ready = true;
+  if (navigator.onLine) setBoot('✅ آماده است');
 }
 
 function setupRealtime() {
-  if (appState.channel) appState.db.removeChannel(appState.channel);
-  appState.channel = appState.db.channel('attendance-realtime')
+  if (app.channel) app.db.removeChannel(app.channel);
+  app.channel = app.db.channel('attendance-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
-      if (navigator.onLine) { loadTodayRecords(); if (document.getElementById('sec-calendar').classList.contains('active')) loadCalendar(); if (document.getElementById('sec-reports').classList.contains('active')) loadReports(); if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard(); }
+      if (navigator.onLine) {
+        loadTodayRecords();
+        if (document.getElementById('sec-calendar').classList.contains('active')) loadCalendar();
+        if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
+        if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
+      }
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => { if (navigator.onLine) loadEmployees().then(() => { fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); }); })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'branches' }, () => { if (navigator.onLine) loadBranches(); }).subscribe();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => {
+      if (navigator.onLine) loadEmployees().then(() => { fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); });
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'branches' }, () => {
+      if (navigator.onLine) loadBranches();
+    })
+    .subscribe();
 }
 
 function restoreSelections() {
-  const empId = localStorage.getItem(LS_KEYS.emp); const branchId = localStorage.getItem(LS_KEYS.branch); const reportEmp = localStorage.getItem(LS_KEYS.reportEmp); const todayBranch = localStorage.getItem(LS_KEYS.todayBranch);
+  const empId = localStorage.getItem(LS_KEYS.emp);
+  const branchId = localStorage.getItem(LS_KEYS.branch);
+  const reportEmp = localStorage.getItem(LS_KEYS.reportEmp);
+  const todayBranch = localStorage.getItem(LS_KEYS.todayBranch);
   const setSel = (id, val) => { const s = document.getElementById(id); if (s && val && [...s.options].some(o => o.value === val)) s.value = val; };
-  setSel('empSelect', empId); setSel('branchSelect', branchId); setSel('reportEmpFilter', reportEmp); setSel('todayBranchFilter', todayBranch);
+  setSel('empSelect', empId);
+  setSel('branchSelect', branchId);
+  setSel('reportEmpFilter', reportEmp);
+  setSel('todayBranchFilter', todayBranch);
 }
 
 async function getEmpNameMap(ids){
-  const clean = [...new Set(ids.filter(x => x !== null && x !== undefined))]; if (!clean.length || !appState.db) return new Map();
-  const { data } = await appState.db.from('employees').select('id,name').in('id', clean); return new Map((data || []).map(e => [e.id, e.name]));
+  const clean = [...new Set(ids.filter(x => x !== null && x !== undefined))];
+  if (!clean.length || !app.db) return new Map();
+  const { data } = await app.db.from('employees').select('id,name').in('id', clean);
+  return new Map((data || []).map(e => [e.id, e.name]));
 }
 async function getBranchNameMap(ids){
-  const clean = [...new Set(ids.filter(x => x !== null && x !== undefined))]; if (!clean.length || !appState.db) return new Map();
-  const { data } = await appState.db.from('branches').select('id,name').in('id', clean); return new Map((data || []).map(b => [b.id, b.name]));
+  const clean = [...new Set(ids.filter(x => x !== null && x !== undefined))];
+  if (!clean.length || !app.db) return new Map();
+  const { data } = await app.db.from('branches').select('id,name').in('id', clean);
+  return new Map((data || []).map(b => [b.id, b.name]));
 }
 
-function fillCalEmpSelect() { const sel = document.getElementById('calEmpSelect'); if (!sel) return; sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + appState.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join(''); }
+// ---------- تقویم ----------
+function fillCalEmpSelect() {
+  const sel = document.getElementById('calEmpSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' +
+    app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
+}
 function initCalendarTab() {
   const yearSelect = document.getElementById('calYearSelect');
   if (!yearSelect.options.length) {
     const currentJYear = getJalaliParts(new Date()).year;
-    for (let y = currentJYear - 2; y <= currentJYear + 2; y++) { const opt = document.createElement('option'); opt.value = y; opt.textContent = y; yearSelect.appendChild(opt); }
+    for (let y = currentJYear - 2; y <= currentJYear + 2; y++) {
+      const opt = document.createElement('option'); opt.value = y; opt.textContent = y;
+      yearSelect.appendChild(opt);
+    }
     yearSelect.value = currentJYear;
   }
-  document.getElementById('calMonthSelect').value = getJalaliParts(new Date()).month; loadCalendar();
+  document.getElementById('calMonthSelect').value = getJalaliParts(new Date()).month;
+  loadCalendar();
 }
 async function loadCalendar() {
-  const el = document.getElementById('calendarList'); const summaryEl = document.getElementById('calSummary');
-  const empId = document.getElementById('calEmpSelect').value; const jm = parseInt(document.getElementById('calMonthSelect').value); const jy = parseInt(document.getElementById('calYearSelect').value);
+  const el = document.getElementById('calendarList');
+  const summaryEl = document.getElementById('calSummary');
+  const empId = document.getElementById('calEmpSelect').value;
+  const jm = parseInt(document.getElementById('calMonthSelect').value);
+  const jy = parseInt(document.getElementById('calYearSelect').value);
+
   if (!empId) { el.innerHTML = '<div class="empty">ابتدا پرسنل را انتخاب کنید</div>'; summaryEl.style.display = 'none'; return; }
   if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده تقویم به اینترنت نیاز است.</div>'; summaryEl.style.display = 'none'; return; }
+  
   el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
-  const emp = appState.employees.find(e => e.id.toString() === empId.toString()); const daysCount = getJalaliMonthDays(jy, jm); const { start, end } = getJalaliMonthRangeGregorian(jy, jm);
-  const { data: attData, error } = await appState.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', getLocalDateStr(start)).lte('work_date', getLocalDateStr(end));
+
+  const emp = app.employees.find(e => e.id.toString() === empId.toString());
+  const daysCount = getJalaliMonthDays(jy, jm);
+  const { start, end } = getJalaliMonthRangeGregorian(jy, jm);
+  const startStr = getLocalDateStr(start), endStr = getLocalDateStr(end);
+
+  const { data: attData, error } = await app.db.from('attendance')
+    .select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr);
+
   if (error) { el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + error.message + '</div>'; summaryEl.style.display = 'none'; return; }
-  const recordsByDate = {}; (attData || []).forEach(r => { if (!recordsByDate[r.work_date]) recordsByDate[r.work_date] = r; });
-  let totalMins = 0, leaveDays = 0;
-  (attData || []).forEach(r => { if (r.status === 'leave') leaveDays++; else if (r.check_in && r.check_out) { totalMins += getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins; } });
-  const hm = minutesToHM(totalMins); document.getElementById('calSummaryWork').textContent = faNum(hm.h); document.getElementById('calSummaryLeave').textContent = faNum(leaveDays); summaryEl.style.display = 'flex';
-  const todayStr = getLocalDateStr(); let html = '';
+
+  const recordsByDate = {};
+  (attData || []).forEach(r => { if (!recordsByDate[r.work_date]) recordsByDate[r.work_date] = r; });
+
+  let totalMins = 0, leaveDays = 0, presentDays = 0;
+  (attData || []).forEach(r => {
+    if (r.status === 'leave') leaveDays++;
+    else if (r.check_in && r.check_out) { totalMins += minutesBetween(r.check_in, r.check_out); presentDays++; }
+  });
+  const hm = minutesToHM(totalMins);
+  document.getElementById('calSummaryWork').textContent = faNum(hm.h);
+  document.getElementById('calSummaryLeave').textContent = faNum(leaveDays);
+  document.getElementById('calSummaryDays').textContent = faNum(presentDays + leaveDays);
+  summaryEl.style.display = 'flex';
+
+  const todayStr = getLocalDateStr();
+  let html = '';
   for (let d = 1; d <= daysCount; d++) {
-    const gDate = getGregorianFromJalali(jy, jm, d); const gDateStr = getLocalDateStr(gDate); const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(gDate); const rec = recordsByDate[gDateStr];
-    let statusHtml = '<span class="status status-empty">ثبت نشده</span>'; let rowClass = 'status-empty';
+    const gDate = getGregorianFromJalali(jy, jm, d);
+    const gDateStr = getLocalDateStr(gDate);
+    const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(gDate);
+    const rec = recordsByDate[gDateStr];
+
+    let statusHtml = '<span class="status status-empty">ثبت نشده</span>';
+    let rowClass = 'status-empty';
+
     if (rec) {
-      if (rec.status === 'leave') { statusHtml = '<span class="status" style="color:#d97706; font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave'; }
-      else {
-        const inT = rec.check_in ? getTimeParts(rec.check_in).str : '---'; const outT = rec.check_out ? getTimeParts(rec.check_out).str : '---'; const late = rec.check_in && isLate(rec.check_in) ? ' <span style="color:#f97316;">(تأخیر)</span>' : '';
+      if (rec.status === 'leave') {
+        statusHtml = '<span class="status" style="color:#d97706; font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave';
+      } else {
+        const inT = rec.check_in ? timeFa(rec.check_in) : '---';
+        const outT = rec.check_out ? timeFa(rec.check_out) : '---';
+        const late = rec.check_in && isLate(rec.check_in) ? ' <span style="color:#f97316;">(تأخیر)</span>' : '';
         statusHtml = `<span class="status" style="color:#065f46;">ورود: ${inT} | خروج: ${outT}${late}</span>`; rowClass = 'status-present';
       }
     }
-    const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`; const isToday = gDateStr === todayStr;
-    html += `<div class="calendar-row ${rowClass} ${isToday ? 'today' : ''}"><div class="day-info"><strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:#3b82f6; font-size:11px;">(امروز)</span>' : ''}</strong>${statusHtml}</div><button class="btn-icon" style="padding:6px 10px;" onclick="openCalendarEdit('${rec ? rec.id : ''}', '${gDateStr}', '${empId}', '${rec ? rec.check_in : ''}', '${rec ? rec.check_out : ''}', '${rec ? rec.status : ''}', '${dayName} ${dateStr}')">✏️</button></div>`;
+    const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+    const isToday = gDateStr === todayStr;
+    html += `<div class="calendar-row ${rowClass} ${isToday ? 'today' : ''}">
+      <div class="day-info">
+        <strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:#3b82f6; font-size:11px;">(امروز)</span>' : ''}</strong>
+        ${statusHtml}
+      </div>
+      <button class="btn-icon" style="padding:6px 10px;" onclick="openCalendarEdit('${rec ? rec.id : ''}', '${gDateStr}', '${empId}', '${rec ? rec.check_in : ''}', '${rec ? rec.check_out : ''}', '${rec ? rec.status : ''}', '${dayName} ${dateStr}')">✏️</button>
+    </div>`;
   }
   el.innerHTML = html;
 }
 
-window.openCalendarEdit = function(recId, gDateStr, empId, checkInStr, checkOutStr, status, title) {
-  document.getElementById('calRecId').value = recId || ''; document.getElementById('calWorkDate').value = gDateStr; document.getElementById('calEmpId').value = empId;
-  document.getElementById('calCheckIn').value = getTimeForInput(checkInStr); document.getElementById('calCheckOut').value = getTimeForInput(checkOutStr); document.getElementById('calIsLeave').checked = (status === 'leave'); document.getElementById('calModalTitle').textContent = 'ویرایش ' + title;
-  const emp = appState.employees.find(e => e.id.toString() === empId.toString()); document.getElementById('calBranchId').value = emp ? emp.branch_id : ''; document.getElementById('calendarEditModal').classList.add('active');
+window.openCalendarEdit = function(recId, gDateStr, empId, checkInIso, checkOutIso, status, title) {
+  document.getElementById('calRecId').value = recId || '';
+  document.getElementById('calWorkDate').value = gDateStr;
+  document.getElementById('calEmpId').value = empId;
+  document.getElementById('calCheckIn').value = getTimeForInput(checkInIso);
+  document.getElementById('calCheckOut').value = getTimeForInput(checkOutIso);
+  document.getElementById('calIsLeave').checked = (status === 'leave');
+  document.getElementById('calModalTitle').textContent = 'ویرایش ' + title;
+  const emp = app.employees.find(e => e.id.toString() === empId.toString());
+  document.getElementById('calBranchId').value = emp ? emp.branch_id : '';
+  document.getElementById('calendarEditModal').classList.add('active');
 };
 window.closeCalendarModal = function() { document.getElementById('calendarEditModal').classList.remove('active'); };
 
 window.saveCalendarEdit = async function() {
-  const recId = document.getElementById('calRecId').value; const workDate = document.getElementById('calWorkDate').value; const empId = document.getElementById('calEmpId').value; const branchId = document.getElementById('calBranchId').value; const isLeave = document.getElementById('calIsLeave').checked; const inVal = document.getElementById('calCheckIn').value; const outVal = document.getElementById('calCheckOut').value;
+  const recId = document.getElementById('calRecId').value;
+  const workDate = document.getElementById('calWorkDate').value;
+  const empId = document.getElementById('calEmpId').value;
+  const branchId = document.getElementById('calBranchId').value;
+  const isLeave = document.getElementById('calIsLeave').checked;
+  const inVal = document.getElementById('calCheckIn').value;
+  const outVal = document.getElementById('calCheckOut').value;
+
   if (!navigator.onLine) return toast('برای ویرایش نیاز به اینترنت دارید', 'error');
+
   let checkIn = null, checkOut = null, status = 'present';
-  if (isLeave) { status = 'leave'; } else { if (inVal) checkIn = `${workDate}T${inVal}:00`; if (outVal) checkOut = `${workDate}T${outVal}:00`; if (checkIn && checkOut && getTimeParts(checkOut).mins <= getTimeParts(checkIn).mins) { toast('ساعت خروج باید بعد از ورود باشد', 'error'); return; } }
+  if (isLeave) { status = 'leave'; }
+  else {
+    if (inVal) checkIn = new Date(`${workDate}T${inVal}:00`).toISOString();
+    if (outVal) checkOut = new Date(`${workDate}T${outVal}:00`).toISOString();
+    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
+      toast('ساعت خروج باید بعد از ورود باشد', 'error'); return;
+    }
+  }
+
   try {
-    if (recId) { const { error } = await appState.db.from('attendance').update({ check_in: checkIn, check_out: checkOut, status }).eq('id', recId); if (error) throw error; }
-    else { const { error } = await appState.db.from('attendance').insert({ employee_id: Number(empId), branch_id: branchId ? Number(branchId) : null, work_date: workDate, check_in: checkIn, check_out: checkOut, status }); if (error) throw error; }
-    closeCalendarModal(); toast('ذخیره شد', 'success'); loadCalendar(); if (workDate === getLocalDateStr()) loadTodayRecords();
-  } catch (err) { toast('خطا: ' + err.message, 'error'); }
+    if (recId) {
+      const { error } = await app.db.from('attendance').update({ check_in: checkIn, check_out: checkOut, status }).eq('id', recId);
+      if (error) throw error;
+    } else {
+      const { error } = await app.db.from('attendance').insert({
+        employee_id: Number(empId), branch_id: branchId ? Number(branchId) : null,
+        work_date: workDate, check_in: checkIn, check_out: checkOut, status
+      });
+      if (error) throw error;
+    }
+    closeCalendarModal();
+    toast('ذخیره شد', 'success');
+    loadCalendar();
+    if (workDate === getLocalDateStr()) loadTodayRecords();
+  } catch (err) {
+    toast('خطا: ' + err.message, 'error');
+  }
 };
 
-window.openEditModal = async function(id, checkInStr, checkOutStr) { document.getElementById('editRecId').value = id; document.getElementById('editCheckIn').value = getTimeForInput(checkInStr); document.getElementById('editCheckOut').value = getTimeForInput(checkOutStr); document.getElementById('editModal').classList.add('active'); };
+// ---------- Edit / Delete ----------
+window.openEditModal = async function(id, checkInIso, checkOutIso) {
+  document.getElementById('editRecId').value = id;
+  document.getElementById('editCheckIn').value = getTimeForInput(checkInIso);
+  document.getElementById('editCheckOut').value = getTimeForInput(checkOutIso);
+  document.getElementById('editModal').classList.add('active');
+};
 window.closeEditModal = function() { document.getElementById('editModal').classList.remove('active'); };
 
 window.saveEditTime = async function() {
-  const id = document.getElementById('editRecId').value; const inVal = document.getElementById('editCheckIn').value; const outVal = document.getElementById('editCheckOut').value;
+  const id = document.getElementById('editRecId').value;
+  const inVal = document.getElementById('editCheckIn').value;
+  const outVal = document.getElementById('editCheckOut').value;
+
   if (!navigator.onLine) return toast('برای ویرایش نیاز به اینترنت دارید', 'error');
-  const { data: rec, error: fetchErr } = await appState.db.from('attendance').select('check_in, work_date').eq('id', id).single();
+
+  const { data: rec, error: fetchErr } = await app.db.from('attendance').select('check_in, work_date').eq('id', id).single();
   if (fetchErr || !rec) return toast('خطا در یافتن رکورد', 'error');
-  const baseDate = rec.work_date; let newCheckIn = null, newCheckOut = null;
-  if (inVal) newCheckIn = `${baseDate}T${inVal}:00`; if (outVal) newCheckOut = `${baseDate}T${outVal}:00`;
-  if (newCheckIn && newCheckOut && getTimeParts(newCheckOut).mins <= getTimeParts(newCheckIn).mins) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
-  const { error } = await appState.db.from('attendance').update({ check_in: newCheckIn, check_out: newCheckOut }).eq('id', id);
+
+  const baseDate = rec.work_date;
+  let newCheckIn = null, newCheckOut = null;
+  if (inVal) newCheckIn = new Date(`${baseDate}T${inVal}:00`).toISOString();
+  if (outVal) newCheckOut = new Date(`${baseDate}T${outVal}:00`).toISOString();
+  if (newCheckIn && newCheckOut && new Date(newCheckOut) <= new Date(newCheckIn)) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
+
+  const { error } = await app.db.from('attendance').update({ check_in: newCheckIn, check_out: newCheckOut }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  closeEditModal(); toast('ویرایش شد', 'success'); loadTodayRecords(); if (document.getElementById('sec-reports').classList.contains('active')) loadReports(); if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
+
+  closeEditModal();
+  toast('ویرایش شد', 'success');
+  loadTodayRecords();
+  if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
+  if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
 
 window.deleteRecord = async function(id){
   if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error');
   if (!confirm('آیا از حذف این رکورد مطمئن هستید؟')) return;
-  const { error } = await appState.db.from('attendance').delete().eq('id', id);
+  const { error } = await app.db.from('attendance').delete().eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  toast('حذف شد', 'success'); loadTodayRecords(); if (document.getElementById('sec-reports').classList.contains('active')) loadReports(); if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
+  toast('حذف شد', 'success');
+  loadTodayRecords();
+  if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
+  if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
 
+// ---------- Branches / Employees ----------
 async function loadBranches(){
   if (!navigator.onLine) return;
-  const { data, error } = await appState.db.from('branches').select('*').order('id'); if (error){ console.error(error); return; }
-  appState.branches = data || []; renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
+  const { data, error } = await app.db.from('branches').select('*').order('id');
+  if (error){ console.error(error); return; }
+  app.branches = data || [];
+  renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
 }
 function fillBranchSelects(){
-  const opts = '<option value="">انتخاب شعبه...</option>' + appState.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  const opts = '<option value="">انتخاب شعبه...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const s1 = document.getElementById('branchSelect'), s2 = document.getElementById('newEmpBranch');
-  if (s1) s1.innerHTML = opts; if (s2) s2.innerHTML = '<option value="">شعبه (اختیاری)...</option>' + appState.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  if (s1) s1.innerHTML = opts;
+  if (s2) s2.innerHTML = '<option value="">شعبه (اختیاری)...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 }
-function fillTodayBranchFilter() { const sel = document.getElementById('todayBranchFilter'); if (!sel) return; sel.innerHTML = '<option value="all">🏢 همه شعبه‌ها</option>' + appState.branches.map(b => `<option value="${b.id}">🏢 ${b.name}</option>`).join(''); }
-function renderBranches(){ const el = document.getElementById('branchesList'); if (!el) return; if (!appState.branches.length){ el.innerHTML = '<div class="empty">شعبه‌ای تعریف نشده</div>'; return; } el.innerHTML = appState.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">حذف</button></div>`).join(''); }
+function fillTodayBranchFilter() {
+  const sel = document.getElementById('todayBranchFilter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="all">🏢 همه شعبه‌ها</option>' + app.branches.map(b => `<option value="${b.id}">🏢 ${b.name}</option>`).join('');
+}
+function renderBranches(){
+  const el = document.getElementById('branchesList');
+  if (!el) return;
+  if (!app.branches.length){ el.innerHTML = '<div class="empty">شعبه‌ای تعریف نشده</div>'; return; }
+  el.innerHTML = app.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">حذف</button></div>`).join('');
+}
 window.deleteBranch = async function(id){
-  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error'); if (!confirm('شعبه حذف شود؟')) return;
-  const { error } = await appState.db.from('branches').delete().eq('id', id); if (error) return toast('خطا: ' + error.message, 'error');
-  await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter(); toast('حذف شد', 'success');
+  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error');
+  if (!confirm('شعبه حذف شود؟')) return;
+  const { error } = await app.db.from('branches').delete().eq('id', id);
+  if (error) return toast('خطا: ' + error.message, 'error');
+  await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
+  toast('حذف شد', 'success');
 };
 
 async function loadEmployees(){
   if (!navigator.onLine) return;
-  const { data: emps, error } = await appState.db.from('employees').select('*').order('id'); if (error){ console.error(error); return; }
-  appState.employees = emps || []; const brMap = await getBranchNameMap(appState.employees.map(e => e.branch_id)); appState.employees.forEach(e => { e._branchName = brMap.get(e.branch_id) || null; }); renderEmployees();
+  const { data: emps, error } = await app.db.from('employees').select('*').order('id');
+  if (error){ console.error(error); return; }
+  app.employees = emps || [];
+  const brMap = await getBranchNameMap(app.employees.map(e => e.branch_id));
+  app.employees.forEach(e => { e._branchName = brMap.get(e.branch_id) || null; });
+  renderEmployees();
 }
-function renderEmployees(){ const el = document.getElementById('employeesList'); if (!el) return; if (!appState.employees.length){ el.innerHTML = '<div class="empty">پرسنلی تعریف نشده</div>'; return; } el.innerHTML = appState.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">حذف</button></div>`).join(''); }
+function renderEmployees(){
+  const el = document.getElementById('employeesList');
+  if (!el) return;
+  if (!app.employees.length){ el.innerHTML = '<div class="empty">پرسنلی تعریف نشده</div>'; return; }
+  el.innerHTML = app.employees.map(e => `<div class="branch-item"><span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span><button class="danger small" onclick="deleteEmployee(${e.id})">حذف</button></div>`).join('');
+}
 window.deleteEmployee = async function(id){
-  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error'); if (!confirm('پرسنل حذف شود؟ (تمامی سوابق هم حذف می‌شود)')) return;
-  const { error } = await appState.db.from('employees').delete().eq('id', id); if (error) return toast('خطا: ' + error.message, 'error');
-  await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); toast('حذف شد', 'success');
+  if (!navigator.onLine) return toast('برای حذف نیاز به اینترنت دارید', 'error');
+  if (!confirm('پرسنل حذف شود؟ (تمامی سوابق هم حذف می‌شود)')) return;
+  const { error } = await app.db.from('employees').delete().eq('id', id);
+  if (error) return toast('خطا: ' + error.message, 'error');
+  await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
+  toast('حذف شد', 'success');
 };
 
-function fillEmpSelect(){ const sel = document.getElementById('empSelect'); if (!sel) return; sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + appState.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join(''); }
-function fillReportFilter(){ const sel = document.getElementById('reportEmpFilter'); if (!sel) return; const cur = sel.value; sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + appState.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join(''); if (cur && cur !== 'all') sel.value = cur; }
+function fillEmpSelect(){
+  const sel = document.getElementById('empSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
+}
+function fillReportFilter(){
+  const sel = document.getElementById('reportEmpFilter');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
+  if (cur && cur !== 'all') sel.value = cur;
+}
 function filterEmpSelectBySearch(query) {
-  const sel = document.getElementById('empSelect'); if (!sel) return;
-  const q = query.trim().toLowerCase(); const cur = sel.value; const matches = q ? appState.employees.filter(e => e.name.toLowerCase().includes(q)) : appState.employees;
+  const sel = document.getElementById('empSelect');
+  if (!sel) return;
+  const q = query.trim().toLowerCase();
+  const cur = sel.value;
+  const matches = q ? app.employees.filter(e => e.name.toLowerCase().includes(q)) : app.employees;
   sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + matches.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
-  if (cur) sel.value = cur; if (q && matches.length === 1) { sel.value = matches[0].id; const bId = matches[0].branch_id; if (bId) document.getElementById('branchSelect').value = bId; }
+  if (cur) sel.value = cur;
+  if (q && matches.length === 1) {
+    sel.value = matches[0].id;
+    const bId = matches[0].branch_id;
+    if (bId) document.getElementById('branchSelect').value = bId;
+  }
 }
 
+// ---------- Check In/Out/Leave ----------
 async function doCheckIn(){
-  const empId = document.getElementById('empSelect').value; const branchId = document.getElementById('branchSelect').value;
-  if (!empId) return toast('پرسنل را انتخاب کنید', 'error'); if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
-  const today = getLocalDateStr(); const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: getNowLocalIso(), work_date: today, status: 'present' };
-  if (!navigator.onLine) { const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]'); queue.push(payload); localStorage.setItem(LS_KEYS.offlineQueue, JSON.stringify(queue)); toast('📴 اینترنت قطع است. ورود شما موقتاً در گوشی ذخیره شد.', 'warning', 4000); loadTodayRecords(); return; }
+  const empId = document.getElementById('empSelect').value;
+  const branchId = document.getElementById('branchSelect').value;
+  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
+  if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
+
+  const today = getLocalDateStr();
+  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: new Date().toISOString(), work_date: today, status: 'present' };
+
+  if (!navigator.onLine) {
+    const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
+    queue.push(payload);
+    localStorage.setItem(LS_KEYS.offlineQueue, JSON.stringify(queue));
+    toast('📴 اینترنت قطع است. ورود شما موقتاً در گوشی ذخیره شد.', 'warning', 4000);
+    loadTodayRecords();
+    return;
+  }
+
   try {
-    const { data: leave } = await appState.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1); if (leave && leave.length) return toast('برای این پرسنل امروز مرخصی ثبت شده!', 'error');
-    const { data: open } = await appState.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').limit(1); if (open && open.length) return toast('این پرسنل هنوز خروج نزده!', 'error');
-    const { error } = await appState.db.from('attendance').insert(payload); if (error) throw error;
-    localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId); toast('✅ ورود ثبت شد', 'success'); loadTodayRecords();
+    const { data: leave } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1);
+    if (leave && leave.length) return toast('برای این پرسنل امروز مرخصی ثبت شده!', 'error');
+
+    const { data: open } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').limit(1);
+    if (open && open.length) return toast('این پرسنل هنوز خروج نزده!', 'error');
+
+    const { error } = await app.db.from('attendance').insert(payload);
+    if (error) throw error;
+
+    localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId);
+    toast('✅ ورود ثبت شد', 'success');
+    loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function doCheckOut(){
-  const empId = document.getElementById('empSelect').value; if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
-  if (!navigator.onLine) { return toast('📴 برای ثبت خروج نیاز به اینترنت دارید.', 'error', 4000); }
+  const empId = document.getElementById('empSelect').value;
+  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
+
+  if (!navigator.onLine) {
+    return toast('📴 برای ثبت خروج نیاز به اینترنت دارید.', 'error', 4000);
+  }
+
   try {
-    const { data, error } = await appState.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1); if (error) throw error; if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
-    const { error: ue } = await appState.db.from('attendance').update({ check_out: getNowLocalIso() }).eq('id', data[0].id); if (ue) throw ue;
-    localStorage.setItem(LS_KEYS.emp, empId); toast('✅ خروج ثبت شد', 'success'); loadTodayRecords();
+    const { data, error } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1);
+    if (error) throw error;
+    if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
+    const { error: ue } = await app.db.from('attendance').update({ check_out: new Date().toISOString() }).eq('id', data[0].id);
+    if (ue) throw ue;
+    localStorage.setItem(LS_KEYS.emp, empId);
+    toast('✅ خروج ثبت شد', 'success');
+    loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function doLeave(){
-  const empId = document.getElementById('empSelect').value; const branchId = document.getElementById('branchSelect').value;
-  if (!empId) return toast('پرسنل را انتخاب کنید', 'error'); if (!branchId) return toast('شعبه را انتخاب کنید', 'error'); if (!navigator.onLine) return toast('برای ثبت مرخصی نیاز به اینترنت دارید', 'error');
+  const empId = document.getElementById('empSelect').value;
+  const branchId = document.getElementById('branchSelect').value;
+  if (!empId) return toast('پرسنل را انتخاب کنید', 'error');
+  if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
+  if (!navigator.onLine) return toast('برای ثبت مرخصی نیاز به اینترنت دارید', 'error');
+
   const today = getLocalDateStr();
   try {
-    const { data: present } = await appState.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'present').limit(1); if (present && present.length) return toast('امروز تردد ثبت شده!', 'error');
-    const { data: leave } = await appState.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1); if (leave && leave.length) return toast('قبلاً مرخصی ثبت شده!', 'error');
-    const { error } = await appState.db.from('attendance').insert({ employee_id: Number(empId), branch_id: Number(branchId), check_in: null, check_out: null, work_date: today, status: 'leave' }); if (error) throw error;
-    localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId); toast('🌴 مرخصی ثبت شد', 'success'); loadTodayRecords();
+    const { data: present } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'present').limit(1);
+    if (present && present.length) return toast('امروز تردد ثبت شده!', 'error');
+
+    const { data: leave } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).eq('work_date', today).eq('status', 'leave').limit(1);
+    if (leave && leave.length) return toast('قبلاً مرخصی ثبت شده!', 'error');
+
+    const { error } = await app.db.from('attendance').insert({
+      employee_id: Number(empId), branch_id: Number(branchId),
+      check_in: null, check_out: null, work_date: today, status: 'leave'
+    });
+    if (error) throw error;
+
+    localStorage.setItem(LS_KEYS.emp, empId); localStorage.setItem(LS_KEYS.branch, branchId);
+    toast('🌴 مرخصی ثبت شد', 'success');
+    loadTodayRecords();
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
 async function loadTodayRecords(){
-  const el = document.getElementById('todayRecords'); if (!el) return; el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+  const el = document.getElementById('todayRecords');
+  if (!el) return;
+  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+  
   const offlineQueue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
+
   try {
-    const today = getLocalDateStr(); const branchFilter = document.getElementById('todayBranchFilter')?.value || 'all'; let attData = [];
-    if (navigator.onLine) { let query = appState.db.from('attendance').select('*').eq('work_date', today).order('id', { ascending:false }); if (branchFilter !== 'all') query = query.eq('branch_id', Number(branchFilter)); const { data, error } = await query; if (error) throw new Error(error.message); attData = data || []; }
+    const today = getLocalDateStr();
+    const branchFilter = document.getElementById('todayBranchFilter')?.value || 'all';
+    let attData = [];
+    
+    if (navigator.onLine) {
+      let query = app.db.from('attendance').select('*').eq('work_date', today).order('id', { ascending:false });
+      if (branchFilter !== 'all') query = query.eq('branch_id', Number(branchFilter));
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      attData = data || [];
+    }
+
     const allData = [...offlineQueue, ...attData];
-    if (!allData.length){ el.innerHTML = '<div class="empty">امروز ترددی ثبت نشده</div>'; document.getElementById('dailyTotal').textContent = '۰'; return; }
-    const [empMap, brMap] = await Promise.all([ getEmpNameMap(allData.map(r => r.employee_id)), getBranchNameMap(allData.map(r => r.branch_id)) ]);
+    
+    if (!allData.length){ 
+      el.innerHTML = '<div class="empty">امروز ترددی ثبت نشده</div>'; 
+      document.getElementById('dailyTotal').textContent = '۰'; 
+      return; 
+    }
+    
+    const [empMap, brMap] = await Promise.all([ 
+      getEmpNameMap(allData.map(r => r.employee_id)), 
+      getBranchNameMap(allData.map(r => r.branch_id)) 
+    ]);
+    
     let total = 0;
     el.innerHTML = allData.map(r => {
-      const isOffline = !r.id; const offlineBadge = isOffline ? '<span class="chip" style="background:#fef3c7; color:#92400e;">در انتظار ارسال</span>' : '';
-      if (r.status === 'leave') { return `<div class="record-item leave"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی تمام روز</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div></div>`; }
-      const inT = r.check_in ? getTimeParts(r.check_in).str : '---'; const outT = r.check_out ? getTimeParts(r.check_out).str : '---'; if (r.check_in && r.check_out) total += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins);
+      const isOffline = !r.id;
+      const offlineBadge = isOffline ? '<span class="chip" style="background:#fef3c7; color:#92400e;">در انتظار ارسال</span>' : '';
+
+      if (r.status === 'leave') {
+        return `<div class="record-item leave"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی تمام روز</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div></div>`;
+      }
+      
+      const inT = r.check_in ? timeFa(r.check_in) : '---';
+      const outT = r.check_out ? timeFa(r.check_out) : '---';
+      if (r.check_in && r.check_out) total += minutesBetween(r.check_in, r.check_out);
       const late = r.check_in && isLate(r.check_in) ? ` <span style="color:#f97316; font-size:11px;">(تأخیر ${faNum(getLateMinutes(r.check_in))}د)</span>` : '';
-      return `<div class="record-item ${r.check_out ? 'out' : ''} ${late ? 'late' : ''} ${isOffline ? 'offline' : ''}"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta">ورود: ${inT}${late} | خروج: ${outT}</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div></div>`;
+      
+      return `<div class="record-item ${r.check_out ? 'out' : ''} ${late ? 'late' : ''} ${isOffline ? 'offline' : ''}">
+        <div class="record-content">
+          <strong>${empMap.get(r.employee_id) || '---'}</strong>
+          <span class="chip">${brMap.get(r.branch_id) || '---'}</span>
+          ${offlineBadge}
+          <div class="meta">ورود: ${inT}${late} | خروج: ${outT}</div>
+        </div>
+        <div class="action-btns">
+          ${!isOffline ? `<button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}
+        </div>
+      </div>`;
     }).join('');
     document.getElementById('dailyTotal').textContent = faNum(total);
-  } catch (err) { console.error(err); el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>'; }
+  } catch (err) {
+    console.error(err);
+    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
+  }
 }
 
+// ---------- Reports ----------
 async function loadReports(){
-  const el = document.getElementById('reportsList'); if (!el) return; if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
-  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>'; const filterEmpId = document.getElementById('reportEmpFilter').value; const searchQ = (document.getElementById('reportSearch')?.value || '').trim().toLowerCase();
-  const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth()+1, 1); document.getElementById('monthlyRange').textContent = `بازه: ${toJalaliShort(start)} تا ${toJalaliShort(new Date(end-1))}`;
-  let query = appState.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)).order('id', { ascending:false }); if (filterEmpId !== 'all') query = query.eq('employee_id', Number(filterEmpId));
+  const el = document.getElementById('reportsList');
+  if (!el) return;
+  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
+  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+
+  const filterEmpId = document.getElementById('reportEmpFilter').value;
+  const searchQ = (document.getElementById('reportSearch')?.value || '').trim().toLowerCase();
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  document.getElementById('monthlyRange').textContent = `بازه: ${toJalaliShort(start)} تا ${toJalaliShort(new Date(end-1))}`;
+
+  let query = app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)).order('id', { ascending:false });
+  if (filterEmpId !== 'all') query = query.eq('employee_id', Number(filterEmpId));
+
   try {
-    const { data: attData, error } = await query; if (error) throw error;
-    const [empMap, brMap] = await Promise.all([ getEmpNameMap((attData||[]).map(r => r.employee_id)), getBranchNameMap((attData||[]).map(r => r.branch_id)) ]);
-    const map = new Map(); appState.employees.forEach(e => { if (filterEmpId === 'all' || e.id.toString() === filterEmpId.toString()) { if (searchQ && !e.name.toLowerCase().includes(searchQ)) return; map.set(e.id, { emp:e, records:[], total:0, leaves:0, lateCount:0 }); } });
-    (attData || []).forEach(r => { const item = map.get(r.employee_id); if (!item) return; item.records.push(r); if (r.status === 'leave') item.leaves++; else if (r.check_in && r.check_out) { item.total += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins); if (isLate(r.check_in)) item.lateCount++; } });
-    let grand = 0; const html = [];
-    map.forEach(({ emp, records, total, leaves, lateCount }) => {
-      grand += total; const hm = minutesToHM(total);
-      const recHtml = records.length ? records.map(r => {
-        if (r.status === 'leave') return `<div class="record-item leave"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
-        const m = r.check_in && r.check_out ? getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins : 0;
-        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">ورود: ${r.check_in ? getTimeParts(r.check_in).str : '---'} | خروج: ${r.check_out ? getTimeParts(r.check_out).str : '--- (باز)'}</div>${r.check_out ? `<div class="meta">مدت: ${faNum(m)} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
-      }).join('') : '<div class="empty" style="padding:10px;">رکوردی ندارد</div>';
-      html.push(`<div class="employee-card"><div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div><div class="stats"><span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span><span>🌴 مرخصی: ${faNum(leaves)} روز</span><span>⚠️ تأخیر: ${faNum(lateCount)}</span><span>📄 تعداد: ${faNum(records.length)}</span></div><details><summary>مشاهده سوابق</summary>${recHtml}</details></div>`);
+    const { data: attData, error } = await query;
+    if (error) throw error;
+
+    const [empMap, brMap] = await Promise.all([
+      getEmpNameMap((attData||[]).map(r => r.employee_id)),
+      getBranchNameMap((attData||[]).map(r => r.branch_id))
+    ]);
+
+    const map = new Map();
+    app.employees.forEach(e => {
+      if (filterEmpId === 'all' || e.id.toString() === filterEmpId.toString()) {
+        if (searchQ && !e.name.toLowerCase().includes(searchQ)) return;
+        map.set(e.id, { emp:e, records:[], total:0, leaves:0, lateCount:0 });
+      }
     });
-    el.innerHTML = html.join('') || '<div class="empty">داده‌ای نیست</div>'; const g = minutesToHM(grand); document.getElementById('monthlyTotalH').textContent = faNum(g.h); document.getElementById('monthlyTotalM').textContent = faNum(g.m);
-  } catch (err) { el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>'; }
+
+    (attData || []).forEach(r => {
+      const item = map.get(r.employee_id);
+      if (!item) return;
+      item.records.push(r);
+      if (r.status === 'leave') item.leaves++;
+      else if (r.check_in && r.check_out) {
+        item.total += minutesBetween(r.check_in, r.check_out);
+        if (isLate(r.check_in)) item.lateCount++;
+      }
+    });
+
+    let grand = 0;
+    const html = [];
+    map.forEach(({ emp, records, total, leaves, lateCount }) => {
+      grand += total;
+      const hm = minutesToHM(total);
+      const recHtml = records.length ? records.map(r => {
+        if (r.status === 'leave') {
+          return `<div class="record-item leave"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
+        }
+        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">ورود: ${r.check_in ? timeFa(r.check_in) : '---'} | خروج: ${r.check_out ? timeFa(r.check_out) : '--- (باز)'}</div>${r.check_out ? `<div class="meta">مدت: ${faNum(minutesBetween(r.check_in, r.check_out))} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
+      }).join('') : '<div class="empty" style="padding:10px;">رکوردی ندارد</div>';
+
+      html.push(`<div class="employee-card">
+        <div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div>
+        <div class="stats">
+          <span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span>
+          <span>🌴 مرخصی: ${faNum(leaves)} روز</span>
+          <span>⚠️ تأخیر: ${faNum(lateCount)}</span>
+          <span>📄 تعداد: ${faNum(records.length)}</span>
+        </div>
+        <details><summary>مشاهده سوابق</summary>${recHtml}</details>
+      </div>`);
+    });
+    el.innerHTML = html.join('') || '<div class="empty">داده‌ای نیست</div>';
+    const g = minutesToHM(grand);
+    document.getElementById('monthlyTotalH').textContent = faNum(g.h);
+    document.getElementById('monthlyTotalM').textContent = faNum(g.m);
+  } catch (err) {
+    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
+  }
 }
 
+// ---------- Dashboard ----------
 async function loadDashboard(){
   if (!navigator.onLine) { toast('برای مشاهده داشبورد نیاز به اینترنت دارید', 'error'); return; }
   try {
-    const today = getLocalDateStr(); const now = new Date(); const monthStart = getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1)); const monthEnd = getLocalDateStr(new Date(now.getFullYear(), now.getMonth()+1, 1));
-    const { data: todayData } = await appState.db.from('attendance').select('*').eq('work_date', today); const { data: monthData } = await appState.db.from('attendance').select('*').gte('work_date', monthStart).lt('work_date', monthEnd);
+    const today = getLocalDateStr();
+    const now = new Date();
+    const monthStart = getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+    const monthEnd = getLocalDateStr(new Date(now.getFullYear(), now.getMonth()+1, 1));
+
+    const { data: todayData } = await app.db.from('attendance').select('*').eq('work_date', today);
+    const { data: monthData } = await app.db.from('attendance').select('*').gte('work_date', monthStart).lt('work_date', monthEnd);
+
     let presentToday = 0, leaveToday = 0, totalToday = 0, lateMonth = 0;
-    (todayData || []).forEach(r => { if (r.status === 'leave') leaveToday++; else if (r.check_in) presentToday++; if (r.check_in && r.check_out) totalToday += (getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins); });
-    const empTotals = new Map(); (monthData || []).forEach(r => { if (r.status === 'leave') return; if (r.check_in && r.check_out) { const mins = getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins; empTotals.set(r.employee_id, (empTotals.get(r.employee_id) || 0) + mins); if (isLate(r.check_in)) lateMonth++; } });
-    let totalMonth = 0; empTotals.forEach(v => totalMonth += v);
-    document.getElementById('dashPresentToday').textContent = faNum(presentToday); document.getElementById('dashLeaveToday').textContent = faNum(leaveToday); document.getElementById('dashTotalToday').textContent = faNum(minutesToHM(totalToday).h); document.getElementById('dashTotalMonth').textContent = faNum(minutesToHM(totalMonth).h); document.getElementById('dashLateMonth').textContent = faNum(lateMonth); document.getElementById('dashTotalEmp').textContent = faNum(appState.employees.length);
-    const sorted = [...empTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0, 5); const topEl = document.getElementById('dashTopList');
-    if (!sorted.length) { topEl.innerHTML = '<div class="empty">داده‌ای برای این ماه نیست</div>'; } else { topEl.innerHTML = sorted.map(([empId, mins], i) => { const emp = appState.employees.find(e => e.id === empId); const hm = minutesToHM(mins); const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  '; return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong>${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`; }).join(''); }
-  } catch (err) { toast('خطا در داشبورد: ' + err.message, 'error'); }
+    (todayData || []).forEach(r => {
+      if (r.status === 'leave') leaveToday++;
+      else if (r.check_in) presentToday++;
+      if (r.check_in && r.check_out) totalToday += minutesBetween(r.check_in, r.check_out);
+    });
+
+    const empTotals = new Map();
+    (monthData || []).forEach(r => {
+      if (r.status === 'leave') return;
+      if (r.check_in && r.check_out) {
+        const mins = minutesBetween(r.check_in, r.check_out);
+        empTotals.set(r.employee_id, (empTotals.get(r.employee_id) || 0) + mins);
+        if (isLate(r.check_in)) lateMonth++;
+      }
+    });
+
+    let totalMonth = 0;
+    empTotals.forEach(v => totalMonth += v);
+
+    document.getElementById('dashPresentToday').textContent = faNum(presentToday);
+    document.getElementById('dashLeaveToday').textContent = faNum(leaveToday);
+    document.getElementById('dashTotalToday').textContent = faNum(minutesToHM(totalToday).h);
+    document.getElementById('dashTotalMonth').textContent = faNum(minutesToHM(totalMonth).h);
+    document.getElementById('dashLateMonth').textContent = faNum(lateMonth);
+    document.getElementById('dashTotalEmp').textContent = faNum(app.employees.length);
+
+    const sorted = [...empTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const topEl = document.getElementById('dashTopList');
+    if (!sorted.length) { topEl.innerHTML = '<div class="empty">داده‌ای برای این ماه نیست</div>'; }
+    else {
+      topEl.innerHTML = sorted.map(([empId, mins], i) => {
+        const emp = app.employees.find(e => e.id === empId);
+        const hm = minutesToHM(mins);
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
+        return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong>${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
+      }).join('');
+    }
+  } catch (err) {
+    toast('خطا در داشبورد: ' + err.message, 'error');
+  }
 }
 
+// ---------- Export ----------
 window.exportToExcel = async function() {
-  if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error'); const filterEmpId = document.getElementById('reportEmpFilter').value; if (filterEmpId === 'all') return toast('ابتدا یک پرسنل انتخاب کنید', 'error'); const emp = appState.employees.find(e => e.id.toString() === filterEmpId.toString()); if (!emp) return toast('پرسنل یافت نشد', 'error');
+  if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
+  const filterEmpId = document.getElementById('reportEmpFilter').value;
+  if (filterEmpId === 'all') return toast('ابتدا یک پرسنل انتخاب کنید', 'error');
+  const emp = app.employees.find(e => e.id.toString() === filterEmpId.toString());
+  if (!emp) return toast('پرسنل یافت نشد', 'error');
+
   try {
-    const now = new Date(); const year = now.getFullYear(), month = now.getMonth(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const start = new Date(year, month, 1), end = new Date(year, month + 1, 1);
-    const { data: attData, error } = await appState.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)); if (error) throw error;
-    const brMap = await getBranchNameMap(attData.map(r => r.branch_id)); const recordsByDay = {}; (attData || []).forEach(r => { const jStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(r.work_date)); recordsByDay[jStr] = r; });
-    const wsData = [["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]]; let jDate = "";
+    const now = new Date();
+    const year = now.getFullYear(), month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const start = new Date(year, month, 1), end = new Date(year, month + 1, 1);
+
+    const { data: attData, error } = await app.db.from('attendance').select('*').eq('employee_id', emp.id).gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
+    if (error) throw error;
+
+    const brMap = await getBranchNameMap(attData.map(r => r.branch_id));
+    const recordsByDay = {};
+    (attData || []).forEach(r => {
+      const jStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(r.work_date));
+      recordsByDay[jStr] = r;
+    });
+
+    const wsData = [["روز", "تاریخ", "ورود", "خروج", "کارکرد", "تأخیر", "توضیحات"]];
+    let jDate = "";
     for (let i = 1; i <= daysInMonth; i++) {
-      const d = new Date(year, month, i); const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d); jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-      let inT = "", outT = "", workTime = "", notes = "", lateStr = ""; const rec = recordsByDay[jDate];
-      if (rec) { if (rec.status === 'leave') { notes = "مرخصی"; } else { if (rec.check_in) inT = getTimeParts(rec.check_in).str; if (rec.check_out) outT = getTimeParts(rec.check_out).str; if (rec.check_in && rec.check_out) { const m = getTimeParts(rec.check_out).mins - getTimeParts(rec.check_in).mins; workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; } if (rec.check_in && isLate(rec.check_in)) lateStr = `${getLateMinutes(rec.check_in)} دقیقه`; const bName = brMap.get(rec.branch_id); if (bName) notes = `شعبه: ${bName}`; } }
+      const d = new Date(year, month, i);
+      const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
+      jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+      let inT = "", outT = "", workTime = "", notes = "", lateStr = "";
+      const rec = recordsByDay[jDate];
+      if (rec) {
+        if (rec.status === 'leave') { notes = "مرخصی"; }
+        else {
+          if (rec.check_in) inT = getTimeForInput(rec.check_in);
+          if (rec.check_out) outT = getTimeForInput(rec.check_out);
+          if (rec.check_in && rec.check_out) {
+            const diffMins = minutesBetween(rec.check_in, rec.check_out);
+            workTime = `${String(Math.floor(diffMins/60)).padStart(2,'0')}:${String(diffMins%60).padStart(2,'0')}`;
+          }
+          if (rec.check_in && isLate(rec.check_in)) lateStr = `${getLateMinutes(rec.check_in)} دقیقه`;
+          const bName = brMap.get(rec.branch_id); if (bName) notes = `شعبه: ${bName}`;
+        }
+      }
       wsData.push([dayName, jDate, inT, outT, workTime, lateStr, notes]);
     }
     downloadWorkbook(wsData, emp.name, jDate);
@@ -660,31 +1347,149 @@ window.exportToExcel = async function() {
 window.exportAllEmployees = async function() {
   if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
   try {
-    const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth()+1, 1); const { data: attData, error } = await appState.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end)); if (error) throw error;
-    const [empMap, brMap] = await Promise.all([ getEmpNameMap((attData||[]).map(r => r.employee_id)), getBranchNameMap((attData||[]).map(r => r.branch_id)) ]); const wsData = [["پرسنل", "شعبه", "تاریخ", "روز", "ورود", "خروج", "کارکرد", "وضعیت"]];
-    (attData || []).forEach(r => { const d = new Date(r.work_date); const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d); let inT = "", outT = "", workTime = "", status = "حاضر"; if (r.status === 'leave') status = "مرخصی"; else { if (r.check_in) inT = getTimeParts(r.check_in).str; if (r.check_out) outT = getTimeParts(r.check_out).str; if (r.check_in && r.check_out) { const m = getTimeParts(r.check_out).mins - getTimeParts(r.check_in).mins; workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; } } wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', jDate, dayName, inT, outT, workTime, status]); });
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(wsData); ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:8},{wch:8},{wch:10},{wch:10}]; XLSX.utils.book_append_sheet(wb, ws, 'همه پرسنل'); const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' }); const blob = new Blob([wbout], { type: 'application/octet-stream' }); triggerDownload(blob, `گزارش_کل_${new Date().toISOString().slice(0,10)}.xlsx`); toast('فایل دانلود شد', 'success');
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    const { data: attData, error } = await app.db.from('attendance').select('*').gte('work_date', getLocalDateStr(start)).lt('work_date', getLocalDateStr(end));
+    if (error) throw error;
+
+    const [empMap, brMap] = await Promise.all([
+      getEmpNameMap((attData||[]).map(r => r.employee_id)),
+      getBranchNameMap((attData||[]).map(r => r.branch_id))
+    ]);
+
+    const wsData = [["پرسنل", "شعبه", "تاریخ", "روز", "ورود", "خروج", "کارکرد", "وضعیت"]];
+    (attData || []).forEach(r => {
+      const d = new Date(r.work_date);
+      const jDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+      const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
+      let inT = "", outT = "", workTime = "", status = "حاضر";
+      if (r.status === 'leave') status = "مرخصی";
+      else {
+        if (r.check_in) inT = getTimeForInput(r.check_in);
+        if (r.check_out) outT = getTimeForInput(r.check_out);
+        if (r.check_in && r.check_out) {
+          const m = minutesBetween(r.check_in, r.check_out);
+          workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+        }
+      }
+      wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:8},{wch:8},{wch:10},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws, 'همه پرسنل');
+    const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    triggerDownload(blob, `گزارش_کل_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast('فایل دانلود شد', 'success');
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 };
 
 function downloadWorkbook(wsData, sheetName, jDate) {
-  try { if (typeof XLSX !== 'undefined') { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(wsData); ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}]; XLSX.utils.book_append_sheet(wb, ws, sheetName); const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' }); const blob = new Blob([wbout], { type: 'application/octet-stream' }); triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.xlsx`); return; } } catch(e) { console.warn('XLSX error', e); }
-  let csv = "\uFEFF"; wsData.forEach(row => { csv += row.map(c => `"${c}"`).join(",") + "\r\n"; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.csv`);
-}
-function triggerDownload(blob, filename) {
-  if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename)] })) { const file = new File([blob], filename, { type: blob.type }); navigator.share({ files: [file], title: filename }).catch(() => {}); }
-  else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  try {
+    if (typeof XLSX !== 'undefined') {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}];
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.xlsx`);
+      return;
+    }
+  } catch(e) { console.warn('XLSX error', e); }
+  let csv = "\uFEFF";
+  wsData.forEach(row => { csv += row.map(c => `"${c}"`).join(",") + "\r\n"; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.csv`);
 }
 
-appState.loadReports = loadReports; appState.renderEmployees = renderEmployees; appState.renderBranches = renderBranches;
+function triggerDownload(blob, filename) {
+  if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename)] })) {
+    const file = new File([blob], filename, { type: blob.type });
+    navigator.share({ files: [file], title: filename }).catch(() => {});
+  } else {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+// ---------- Wire up ----------
+app.loadReports = loadReports;
+app.renderEmployees = renderEmployees;
+app.renderBranches = renderBranches;
+
 document.addEventListener('DOMContentLoaded', async () => {
-  loadSettings(); applyTheme(); const authenticated = await requirePin(); if (!authenticated) return; setupTabs();
-  document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn); document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut); document.getElementById('btnLeave')?.addEventListener('click', doLeave); document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
-  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => { localStorage.setItem(LS_KEYS.reportEmp, e.target.value); loadReports(); }); document.getElementById('reportSearch')?.addEventListener('input', () => loadReports()); document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => { localStorage.setItem(LS_KEYS.todayBranch, e.target.value); loadTodayRecords(); });
-  document.getElementById('calEmpSelect')?.addEventListener('change', loadCalendar); document.getElementById('calMonthSelect')?.addEventListener('change', loadCalendar); document.getElementById('calYearSelect')?.addEventListener('change', loadCalendar); document.getElementById('empSearchInput')?.addEventListener('input', (e) => filterEmpSelectBySearch(e.target.value));
-  document.getElementById('btnAddBranch')?.addEventListener('click', async () => { if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error'); const name = document.getElementById('newBranchName').value.trim(); if (!name) return toast('نام شعبه را وارد کنید', 'error'); try { const { error } = await appState.db.from('branches').insert({ name }); if (error) throw error; document.getElementById('newBranchName').value = ''; await loadBranches(); toast('شعبه اضافه شد', 'success'); } catch (err) { toast('خطا: ' + err.message, 'error'); } });
-  document.getElementById('btnAddEmp')?.addEventListener('click', async () => { if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error'); const name = document.getElementById('newEmpName').value.trim(); const branchId = document.getElementById('newEmpBranch').value || null; if (!name) return toast('نام را وارد کنید', 'error'); try { const { error } = await appState.db.from('employees').insert({ name, branch_id: branchId }); if (error) throw error; document.getElementById('newEmpName').value = ''; await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect(); toast('پرسنل اضافه شد', 'success'); } catch (err) { toast('خطا: ' + err.message, 'error'); } });
-  document.getElementById('empSelect')?.addEventListener('change', (e) => { const opt = e.target.selectedOptions[0]; const bId = opt?.dataset.branch; if (bId) document.getElementById('branchSelect').value = bId; if (e.target.value) localStorage.setItem(LS_KEYS.emp, e.target.value); }); document.getElementById('branchSelect')?.addEventListener('change', (e) => { if (e.target.value) localStorage.setItem(LS_KEYS.branch, e.target.value); });
+  loadSettings();
+  applyTheme();
+
+  const authenticated = await requirePin();
+  if (!authenticated) return;
+
+  setupTabs();
+
+  document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn);
+  document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut);
+  document.getElementById('btnLeave')?.addEventListener('click', doLeave);
+  document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
+
+  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => {
+    localStorage.setItem(LS_KEYS.reportEmp, e.target.value);
+    loadReports();
+  });
+  document.getElementById('reportSearch')?.addEventListener('input', () => loadReports());
+  document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => {
+    localStorage.setItem(LS_KEYS.todayBranch, e.target.value);
+    loadTodayRecords();
+  });
+
+  document.getElementById('calEmpSelect')?.addEventListener('change', loadCalendar);
+  document.getElementById('calMonthSelect')?.addEventListener('change', loadCalendar);
+  document.getElementById('calYearSelect')?.addEventListener('change', loadCalendar);
+  document.getElementById('empSearchInput')?.addEventListener('input', (e) => filterEmpSelectBySearch(e.target.value));
+
+  document.getElementById('btnAddBranch')?.addEventListener('click', async () => {
+    if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error');
+    const name = document.getElementById('newBranchName').value.trim();
+    if (!name) return toast('نام شعبه را وارد کنید', 'error');
+    try {
+      const { error } = await app.db.from('branches').insert({ name });
+      if (error) throw error;
+      document.getElementById('newBranchName').value = '';
+      await loadBranches();
+      toast('شعبه اضافه شد', 'success');
+    } catch (err) { toast('خطا: ' + err.message, 'error'); }
+  });
+
+  document.getElementById('btnAddEmp')?.addEventListener('click', async () => {
+    if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error');
+    const name = document.getElementById('newEmpName').value.trim();
+    const branchId = document.getElementById('newEmpBranch').value || null;
+    if (!name) return toast('نام را وارد کنید', 'error');
+    try {
+      const { error } = await app.db.from('employees').insert({ name, branch_id: branchId });
+      if (error) throw error;
+      document.getElementById('newEmpName').value = '';
+      await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
+      toast('پرسنل اضافه شد', 'success');
+    } catch (err) { toast('خطا: ' + err.message, 'error'); }
+  });
+
+  document.getElementById('empSelect')?.addEventListener('change', (e) => {
+    const opt = e.target.selectedOptions[0];
+    const bId = opt?.dataset.branch;
+    if (bId) document.getElementById('branchSelect').value = bId;
+    if (e.target.value) localStorage.setItem(LS_KEYS.emp, e.target.value);
+  });
+  document.getElementById('branchSelect')?.addEventListener('change', (e) => {
+    if (e.target.value) localStorage.setItem(LS_KEYS.branch, e.target.value);
+  });
+
   initApp();
 });
 </script>
