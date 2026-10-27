@@ -431,19 +431,6 @@ function getLocalDateStr(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-function getLocalISOString(d = new Date()) {
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
-
-function extractTimeParts(dateStr) {
-  if (!dateStr) return null;
-  const timePart = dateStr.includes('T') ? dateStr.split('T')[1] : dateStr.split(' ')[1];
-  if (!timePart) return null;
-  const parts = timePart.split(':');
-  return { h: parseInt(parts[0]), m: parseInt(parts[1]) };
-}
-
 function getJalaliParts(date) {
   const jStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
   const parts = jStr.split('/');
@@ -481,28 +468,22 @@ function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 
+// تبدیل زمان‌ها برای نمایش (تبدیل UTC به وقت ایران به صورت ۲۴ ساعته)
 function timeFa(dateStr){ 
   if (!dateStr) return '---';
-  const parts = extractTimeParts(dateStr);
-  if (parts) return `${String(parts.h).padStart(2, '0')}:${String(parts.m).padStart(2, '0')}`;
-  return '---';
+  return new Date(dateStr).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit', hour12: false}); 
 }
 
 function minutesBetween(startStr, endStr){ 
-  const s = extractTimeParts(startStr);
-  const e = extractTimeParts(endStr);
-  if (!s || !e) return 0;
-  const startMins = s.h * 60 + s.m;
-  const endMins = e.h * 60 + e.m;
-  return endMins - startMins;
+  if (!startStr || !endStr) return 0;
+  return Math.round((new Date(endStr) - new Date(startStr)) / 60000); 
 }
 
 function minutesToHM(m){ return { h: Math.floor(m/60), m: Math.round(m%60) }; }
 function getTimeForInput(dateStr) {
   if (!dateStr) return '';
-  const parts = extractTimeParts(dateStr);
-  if (!parts) return '';
-  return `${String(parts.h).padStart(2, '0')}:${String(parts.m).padStart(2, '0')}`;
+  const d = new Date(dateStr);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 function setBoot(msg, isError){
   const el = document.getElementById('bootMsg');
@@ -516,7 +497,7 @@ function updateClock(){
   const now = new Date();
   const c = document.getElementById('liveClock');
   const d = document.getElementById('todayDate');
-  if (c) c.textContent = now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if (c) c.textContent = now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit', hour12: false});
   if (d) d.textContent = toJalali(now);
 }
 setInterval(updateClock, 1000);
@@ -556,14 +537,13 @@ async function syncOfflineQueue() {
   }
 }
 
-// ---------- تشخیص تأخیر (بدون ارفاق - دقیق از لحظه شروع) ----------
+// ---------- تشخیص تأخیر (دقیق و با تبدیل تایم‌زون) ----------
 function isLate(checkInIso, workDate) {
   if (!app.settings.lateEnabled) return false; 
   if (!checkInIso || !app.settings.startTime) return false;
   
-  const timeParts = extractTimeParts(checkInIso);
-  if (!timeParts) return false;
-  const actualMinutes = timeParts.h * 60 + timeParts.m;
+  const d = new Date(checkInIso);
+  const actualMinutes = d.getHours() * 60 + d.getMinutes();
 
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
   const startMinutes = sh * 60 + sm;
@@ -575,9 +555,8 @@ function getLateMinutes(checkInIso) {
   if (!app.settings.lateEnabled) return 0;
   if (!checkInIso || !app.settings.startTime) return 0;
   
-  const timeParts = extractTimeParts(checkInIso);
-  if (!timeParts) return 0;
-  const actualMinutes = timeParts.h * 60 + timeParts.m;
+  const d = new Date(checkInIso);
+  const actualMinutes = d.getHours() * 60 + d.getMinutes();
 
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
   const startMinutes = sh * 60 + sm;
@@ -910,10 +889,9 @@ window.saveCalendarEdit = async function() {
   let checkIn = null, checkOut = null, status = 'present';
   if (isLeave) { status = 'leave'; }
   else {
-    if (inVal) checkIn = `${workDate}T${inVal}:00`;
-    if (outVal) checkOut = `${workDate}T${outVal}:00`;
-    
-    if (checkIn && checkOut && minutesBetween(checkIn, checkOut) <= 0) {
+    if (inVal) checkIn = new Date(`${workDate}T${inVal}:00`).toISOString();
+    if (outVal) checkOut = new Date(`${workDate}T${outVal}:00`).toISOString();
+    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
       toast('ساعت خروج باید بعد از ورود باشد', 'error'); return;
     }
   }
@@ -959,10 +937,9 @@ window.saveEditTime = async function() {
 
   const baseDate = rec.work_date;
   let newCheckIn = null, newCheckOut = null;
-  if (inVal) newCheckIn = `${baseDate}T${inVal}:00`;
-  if (outVal) newCheckOut = `${baseDate}T${outVal}:00`;
-  
-  if (newCheckIn && newCheckOut && minutesBetween(newCheckIn, newCheckOut) <= 0) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
+  if (inVal) newCheckIn = new Date(`${baseDate}T${inVal}:00`).toISOString();
+  if (outVal) newCheckOut = new Date(`${baseDate}T${outVal}:00`).toISOString();
+  if (newCheckIn && newCheckOut && new Date(newCheckOut) <= new Date(newCheckIn)) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
 
   const { error } = await app.db.from('attendance').update({ check_in: newCheckIn, check_out: newCheckOut }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
@@ -1013,7 +990,7 @@ function renderBranches(){
 window.deleteBranch = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
   if (!confirm('این شعبه غیرفعال شود؟ (سوابق تردد حفظ می‌شود)')) return;
-  const { error } = await app.db.from('branches').update({ deleted_at: getLocalISOString() }).eq('id', id);
+  const { error } = await app.db.from('branches').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
   toast('شعبه غیرفعال شد (سوابق حفظ شد)', 'success');
@@ -1037,7 +1014,7 @@ function renderEmployees(){
 window.deleteEmployee = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
   if (!confirm('این پرسنل غیرفعال شود؟ (تمام سوابق تردد او حفظ می‌شود)')) return;
-  const { error } = await app.db.from('employees').update({ deleted_at: getLocalISOString() }).eq('id', id);
+  const { error } = await app.db.from('employees').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
   toast('پرسنل غیرفعال شد (سوابق حفظ شد)', 'success');
@@ -1078,7 +1055,7 @@ async function doCheckIn(){
   if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
 
   const today = getLocalDateStr();
-  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: getLocalISOString(), work_date: today, status: 'present' };
+  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: new Date().toISOString(), work_date: today, status: 'present' };
 
   if (!navigator.onLine) {
     const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
@@ -1117,7 +1094,7 @@ async function doCheckOut(){
     const { data, error } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1);
     if (error) throw error;
     if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
-    const { error: ue } = await app.db.from('attendance').update({ check_out: getLocalISOString() }).eq('id', data[0].id);
+    const { error: ue } = await app.db.from('attendance').update({ check_out: new Date().toISOString() }).eq('id', data[0].id);
     if (ue) throw ue;
     localStorage.setItem(LS_KEYS.emp, empId);
     toast('✅ خروج ثبت شد', 'success');
@@ -1249,7 +1226,7 @@ async function loadReports(){
     app.employees.forEach(e => {
       if (filterEmpId === 'all' || e.id.toString() === filterEmpId.toString()) {
         if (searchQ && !e.name.toLowerCase().includes(searchQ)) return;
-        map.set(e.id,د { emp:e, records:[], total:0, leaves:0, lateCount:0 });
+        map.set(e.id, { emp:e, records:[], total:0, leaves:0, lateCount:0 });
       }
     });
 
@@ -1281,7 +1258,7 @@ async function loadReports(){
       html.push(`<div class="employee-card">
         <div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div>
         <div class="stats">
-          <span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}</span>
+          <span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span>
           <span>🌴 مرخصی: ${faNum(leaves)} روز</span>
           ${lateStat}
           <span>📄 تعداد: ${faNum(records.length)}</span>
@@ -1505,10 +1482,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btnLeave')?.addEventListener('click', doLeave);
   document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
 
-  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) branch => {
+  document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => {
     localStorage.setItem(LS_KEYS.reportEmp, e.target.value);
     loadReports();
-_id  });
+  });
   document.getElementById('reportSearch')?.addEventListener('input', () => loadReports());
   document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => {
     localStorage.setItem(LS_KEYS.todayBranch, e.target.value);
@@ -1539,7 +1516,7 @@ _id  });
     const branchId = document.getElementById('newEmpBranch').value || null;
     if (!name) return toast('نام را وارد کنید', 'error');
     try {
-      const { error } = await app.db.from('employees').insert({ name,: branchId });
+      const { error } = await app.db.from('employees').insert({ name, branch_id: branchId });
       if (error) throw error;
       document.getElementById('newEmpName').value = '';
       await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
