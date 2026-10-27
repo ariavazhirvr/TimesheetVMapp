@@ -520,21 +520,33 @@ async function syncOfflineQueue() {
   }
 }
 
-// ---------- تشخیص تأخیر (اصلاح باگ منطقه زمانی) ----------
+// ---------- تشخیص تأخیر (اصلاح نهایی باگ) ----------
+// این تابع دقیقا ساعت محلی (وقت ایران) رو بررسی میکنه نه ساعت جهانی
 function isLate(checkInIso) {
   if (!checkInIso || !app.settings.startTime) return false;
+  
   const d = new Date(checkInIso);
+  const hours = d.getHours(); // ساعت محلی گوشی
+  const minutes = d.getMinutes(); // دقیقه محلی گوشی
+  
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
   const startMinutes = sh * 60 + sm;
-  const actualMinutes = d.getHours() * 60 + d.getMinutes();
+  const actualMinutes = hours * 60 + minutes;
+  
   return actualMinutes > startMinutes + 5;
 }
+
 function getLateMinutes(checkInIso) {
   if (!checkInIso) return 0;
+  
   const d = new Date(checkInIso);
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
+  
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
-  const actualMinutes = d.getHours() * 60 + d.getMinutes();
   const startMinutes = sh * 60 + sm;
+  const actualMinutes = hours * 60 + minutes;
+  
   return Math.max(0, actualMinutes - startMinutes);
 }
 
@@ -580,7 +592,7 @@ function saveSettings() {
   }
   document.getElementById('settingsModal').classList.remove('active');
   toast('تنظیمات ذخیره شد', 'success');
-  loadTodayRecords(); // برای اعمال فوری تغییرات تاخیر
+  loadTodayRecords(); // رفرش لیست برای اعمال تغییرات ساعت
 }
 
 // ---------- PIN / Auth ----------
@@ -1373,10 +1385,10 @@ window.exportAllEmployees = async function() {
         if (r.check_out) outT = getTimeForInput(r.check_out);
         if (r.check_in && r.check_out) {
           const m = minutesBetween(r.check_in, r.check_out);
-          workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+          workTime = `${String(Math.floor(m/60)).padStart((2,'0')}:${String(m%bl60).padStart(2,'ob0')}`;
         }
       }
-      wsData.push([empMap.get(r.employee_id) || '---', brMap.get(r.branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
+      wsData,.push([empMap.get(r.employee_id) || filename '---', brMap.get(r).branch_id) || '---', jDate, dayName, inT, outT, workTime, status]);
     });
 
     const wb = XLSX.utils.book_new();
@@ -1409,7 +1421,7 @@ function downloadWorkbook(wsData, sheetName, jDate) {
   triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.csv`);
 }
 
-function triggerDownload(blob, filename) {
+function triggerDownload {
   if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename)] })) {
     const file = new File([blob], filename, { type: blob.type });
     navigator.share({ files: [file], title: filename }).catch(() => {});
