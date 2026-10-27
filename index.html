@@ -399,7 +399,7 @@ const LS_KEYS = {
   pinHash: 'timesheet_pin_hash',
   auth: 'timesheet_auth_session',
   theme: 'timesheet_theme',
-  offlineQueue: 'timesheet_offline_queue' // کلید جدید برای داده‌های آفلاین
+  offlineQueue: 'timesheet_offline_queue'
 };
 
 const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00' };
@@ -496,7 +496,7 @@ function updateOnlineStatus() {
   } else {
     banner.style.display = 'block';
   }
-  loadTodayRecords(); // رفرش لیست
+  loadTodayRecords(); 
 }
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
@@ -514,14 +514,14 @@ async function syncOfflineQueue() {
   }
 
   if (successCount > 0) {
-    localStorage.setItem(LS_KEYS.offlineQueue, '[]'); // پاک کردن صف
+    localStorage.setItem(LS_KEYS.offlineQueue, '[]'); 
     toast(`✅ ${successCount} رکورد آفلاین به سرور ارسال شد.`, 'success', 4000);
     loadTodayRecords();
   }
 }
 
-// ---------- تشخیص تأخیر ----------
-function isLate(checkInIso, workDate) {
+// ---------- تشخیص تأخیر (اصلاح باگ منطقه زمانی) ----------
+function isLate(checkInIso) {
   if (!checkInIso || !app.settings.startTime) return false;
   const d = new Date(checkInIso);
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
@@ -533,7 +533,9 @@ function getLateMinutes(checkInIso) {
   if (!checkInIso) return 0;
   const d = new Date(checkInIso);
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
-  return Math.max(0, (d.getHours() * 60 + d.getMinutes()) - (sh * 60 + sm));
+  const actualMinutes = d.getHours() * 60 + d.getMinutes();
+  const startMinutes = sh * 60 + sm;
+  return Math.max(0, actualMinutes - startMinutes);
 }
 
 // ---------- تنظیمات ----------
@@ -578,6 +580,7 @@ function saveSettings() {
   }
   document.getElementById('settingsModal').classList.remove('active');
   toast('تنظیمات ذخیره شد', 'success');
+  loadTodayRecords(); // برای اعمال فوری تغییرات تاخیر
 }
 
 // ---------- PIN / Auth ----------
