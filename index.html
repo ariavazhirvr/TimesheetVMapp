@@ -419,13 +419,29 @@ function toast(msg, type='info', duration=2800) {
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
 }
 
-// ---------- تاریخ ----------
+// ---------- توابع کمکی زمان و تاریخ (اصلاح‌شده برای عبور از باگ تایم‌زون) ----------
 function getLocalDateStr(d = new Date()) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+
+// گرفتن زمان به صورت رشته دقیقاً مطابق ساعت گوشی
+function getLocalISOString(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// استخراج ساعت و دقیقه از هر نوع فرمتی (ISO قدیمی یا رشته جدید)
+function extractTimeParts(dateStr) {
+  if (!dateStr) return null;
+  const timePart = dateStr.includes('T') ? dateStr.split('T')[1] : dateStr.split(' ')[1];
+  if (!timePart) return null;
+  const parts = timePart.split(':');
+  return { h: parseInt(parts[0]), m: parseInt(parts[1]) };
+}
+
 function getJalaliParts(date) {
   const jStr = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
   const parts = jStr.split('/');
@@ -462,13 +478,31 @@ function getJalaliMonthRangeGregorian(jy, jm) {
 function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
-function timeFa(d){ return new Date(d).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}); }
-function minutesBetween(a,b){ return Math.round((new Date(b)-new Date(a))/60000); }
+
+// استخراج زمان برای نمایش (باگ تایم‌زون حل شد)
+function timeFa(dateStr){ 
+  if (!dateStr) return '---';
+  const parts = extractTimeParts(dateStr);
+  if (parts) return `${String(parts.h).padStart(2, '0')}:${String(parts.m).padStart(2, '0')}`;
+  return '---';
+}
+
+// محاسبه اختلاف دقیقه بین دو زمان رشته‌ای
+function minutesBetween(startStr, endStr){ 
+  const s = extractTimeParts(startStr);
+  const e = extractTimeParts(endStr);
+  if (!s || !e) return 0;
+  const startMins = s.h * 60 + s.m;
+  const endMins = e.h * 60 + e.m;
+  return endMins - startMins;
+}
+
 function minutesToHM(m){ return { h: Math.floor(m/60), m: Math.round(m%60) }; }
-function getTimeForInput(isoString) {
-  if (!isoString) return '';
-  const d = new Date(isoString);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+function getTimeForInput(dateStr) {
+  if (!dateStr) return '';
+  const parts = extractTimeParts(dateStr);
+  if (!parts) return '';
+  return `${String(parts.h).padStart(2, '0')}:${String(parts.m).padStart(2, '0')}`;
 }
 function setBoot(msg, isError){
   const el = document.getElementById('bootMsg');
@@ -522,24 +556,21 @@ async function syncOfflineQueue() {
   }
 }
 
-// ---------- تشخیص تأخیر (رفع کامل باگ منطقه زمانی) ----------
+// ---------- تشخیص تأخیر (کاملاً بدون باگ) ----------
 function isLate(checkInIso, workDate) {
   if (!checkInIso || !app.settings.startTime) return false;
   
-  // استخراج ساعت دقیق از زمان ثبت‌شده در دیتابیس
-  const d = new Date(checkInIso);
-  const inHour = d.getHours();
-  const inMinute = d.getMinutes();
-  const actualMinutes = inHour * 60 + inMinute;
+  const timeParts = extractTimeParts(checkInIso);
+  if (!timeParts) return false;
+  const actualMinutes = timeParts.h * 60 + timeParts.m;
 
-  // استخراج ساعت شروع کار از تنظیمات
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
   const startMinutes = sh * 60 + sm;
 
-  // اگر ساعت ورود دقیقاً برابر یا کمتر از ساعت شروع بود، اصلا تاخیر نیست
+  // اگر ورود قبل یا دقیقاً سر ساعت بود، تاخیر نیست
   if (actualMinutes <= startMinutes) return false;
   
-  // ارفاق ۱۵ دقیقه‌ای (یعنی تا ۱۵ دقیقه بعد از شروع هم تاخیر حساب نمیشه)
+  // ارفاق ۱۵ دقیقه‌ای
   const gracePeriod = 15;
   return actualMinutes > (startMinutes + gracePeriod);
 }
@@ -547,10 +578,9 @@ function isLate(checkInIso, workDate) {
 function getLateMinutes(checkInIso) {
   if (!checkInIso || !app.settings.startTime) return 0;
   
-  const d = new Date(checkInIso);
-  const inHour = d.getHours();
-  const inMinute = d.getMinutes();
-  const actualMinutes = inHour * 60 + inMinute;
+  const timeParts = extractTimeParts(checkInIso);
+  if (!timeParts) return 0;
+  const actualMinutes = timeParts.h * 60 + timeParts.m;
 
   const [sh, sm] = app.settings.startTime.split(':').map(Number);
   const startMinutes = sh * 60 + sm;
@@ -604,7 +634,6 @@ function saveSettings() {
   document.getElementById('settingsModal').classList.remove('active');
   toast('تنظیمات ذخیره شد', 'success');
   
-  // رفرش کردن لیست‌ها برای اعمال تنظیمات جدید
   if (typeof loadTodayRecords === 'function') loadTodayRecords();
   if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
@@ -884,9 +913,11 @@ window.saveCalendarEdit = async function() {
   let checkIn = null, checkOut = null, status = 'present';
   if (isLeave) { status = 'leave'; }
   else {
-    if (inVal) checkIn = new Date(`${workDate}T${inVal}:00`).toISOString();
-    if (outVal) checkOut = new Date(`${workDate}T${outVal}:00`).toISOString();
-    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
+    if (inVal) checkIn = `${workDate}T${inVal}:00`;
+    if (outVal) checkOut = `${workDate}T${outVal}:00`;
+    
+    // برای مقایسه از همان تابع مطمئن استفاده میکنیم
+    if (checkIn && checkOut && minutesBetween(checkIn, checkOut) <= 0) {
       toast('ساعت خروج باید بعد از ورود باشد', 'error'); return;
     }
   }
@@ -932,9 +963,10 @@ window.saveEditTime = async function() {
 
   const baseDate = rec.work_date;
   let newCheckIn = null, newCheckOut = null;
-  if (inVal) newCheckIn = new Date(`${baseDate}T${inVal}:00`).toISOString();
-  if (outVal) newCheckOut = new Date(`${baseDate}T${outVal}:00`).toISOString();
-  if (newCheckIn && newCheckOut && new Date(newCheckOut) <= new Date(newCheckIn)) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
+  if (inVal) newCheckIn = `${baseDate}T${inVal}:00`;
+  if (outVal) newCheckOut = `${baseDate}T${outVal}:00`;
+  
+  if (newCheckIn && newCheckOut && minutesBetween(newCheckIn, newCheckOut) <= 0) return toast('ساعت خروج باید بعد از ورود باشد', 'error');
 
   const { error } = await app.db.from('attendance').update({ check_in: newCheckIn, check_out: newCheckOut }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
@@ -985,7 +1017,7 @@ function renderBranches(){
 window.deleteBranch = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
   if (!confirm('این شعبه غیرفعال شود؟ (سوابق تردد حفظ می‌شود)')) return;
-  const { error } = await app.db.from('branches').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await app.db.from('branches').update({ deleted_at: getLocalISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
   toast('شعبه غیرفعال شد (سوابق حفظ شد)', 'success');
@@ -1009,7 +1041,7 @@ function renderEmployees(){
 window.deleteEmployee = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
   if (!confirm('این پرسنل غیرفعال شود؟ (تمام سوابق تردد او حفظ می‌شود)')) return;
-  const { error } = await app.db.from('employees').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await app.db.from('employees').update({ deleted_at: getLocalISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
   toast('پرسنل غیرفعال شد (سوابق حفظ شد)', 'success');
@@ -1050,7 +1082,7 @@ async function doCheckIn(){
   if (!branchId) return toast('شعبه را انتخاب کنید', 'error');
 
   const today = getLocalDateStr();
-  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: new Date().toISOString(), work_date: today, status: 'present' };
+  const payload = { employee_id: Number(empId), branch_id: Number(branchId), check_in: getLocalISOString(), work_date: today, status: 'present' };
 
   if (!navigator.onLine) {
     const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
@@ -1089,7 +1121,7 @@ async function doCheckOut(){
     const { data, error } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1);
     if (error) throw error;
     if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
-    const { error: ue } = await app.db.from('attendance').update({ check_out: new Date().toISOString() }).eq('id', data[0].id);
+    const { error: ue } = await app.db.from('attendance').update({ check_out: getLocalISOString() }).eq('id', data[0].id);
     if (ue) throw ue;
     localStorage.setItem(LS_KEYS.emp, empId);
     toast('✅ خروج ثبت شد', 'success');
@@ -1358,8 +1390,8 @@ window.exportToExcel = async function() {
       if (rec) {
         if (rec.status === 'leave') { notes = "مرخصی"; }
         else {
-          if (rec.check_in) inT = getTimeForInput(rec.check_in);
-          if (rec.check_out) outT = getTimeForInput(rec.check_out);
+          if (rec.check_in) inT = timeFa(rec.check_in);
+          if (rec.check_out) outT = timeFa(rec.check_out);
           if (rec.check_in && rec.check_out) {
             const diffMins = minutesBetween(rec.check_in, rec.check_out);
             workTime = `${String(Math.floor(diffMins/60)).padStart(2,'0')}:${String(diffMins%60).padStart(2,'0')}`;
@@ -1396,8 +1428,8 @@ window.exportAllEmployees = async function() {
       let inT = "", outT = "", workTime = "", status = "حاضر";
       if (r.status === 'leave') status = "مرخصی";
       else {
-        if (r.check_in) inT = getTimeForInput(r.check_in);
-        if (r.check_out) outT = getTimeForInput(r.check_out);
+        if (r.check_in) inT = timeFa(r.check_in);
+        if (r.check_out) outT = timeFa(r.check_out);
         if (r.check_in && r.check_out) {
           const m = minutesBetween(r.check_in, r.check_out);
           workTime = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
@@ -1425,7 +1457,7 @@ function downloadWorkbook(wsData, sheetName, jDate) {
       ws['!cols'] = [{wch:10},{wch:12},{wch:8},{wch:8},{wch:10},{wch:10},{wch:25}];
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
       const wbout = XLSX.write(wb, { bookType:'xlsx', type: 'array' });
-      const blob = new Bl ob([wbout], { type: 'application/octet-stream' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       triggerDownload(blob, `گزارش_${sheetName}_${jDate.replace(/\//g, '-')}.xlsx`);
       return;
     }
@@ -1466,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn);
   document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut);
   document.getElementById('btnLeave')?.addEventListener('click', doLeave);
- document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
+  document.getElementById('btnExportExcel')?.addEventListener('click', exportToExcel);
 
   document.getElementById('reportEmpFilter')?.addEventListener('change', (e) => {
     localStorage.setItem(LS_KEYS.reportEmp, e.target.value);
