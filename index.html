@@ -224,19 +224,112 @@
     font-weight: 500;
   }
 
-  .tabs { 
+  /* ===== نوار تب‌های اسکرول‌شو با نشانگر بصری ===== */
+  .tabs-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .tabs {
     display: flex; 
     gap: 6px; 
-    margin-bottom: 14px; 
     overflow-x: auto;
-    padding: 4px;
+    padding: 6px 30px 6px 30px;
     background: var(--card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    scrollbar-width: none;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99,102,241,0.3) transparent;
+    position: relative;
   }
-  .tabs::-webkit-scrollbar { display: none; }
   
+  .tabs::-webkit-scrollbar { 
+    height: 4px; 
+  }
+  .tabs::-webkit-scrollbar-track { 
+    background: transparent; 
+    margin: 0 30px;
+  }
+  .tabs::-webkit-scrollbar-thumb { 
+    background: rgba(99,102,241,0.25); 
+    border-radius: 2px;
+  }
+  .tabs::-webkit-scrollbar-thumb:hover { 
+    background: rgba(99,102,241,0.5); 
+  }
+
+  .tabs-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    padding: 0;
+    color: var(--primary);
+    margin: 0;
+  }
+  
+  .tabs-arrow.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .tabs-arrow:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .tabs-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .tabs-arrow.left { right: 4px; }
+  .tabs-arrow.right { left: 4px; }
+
+  .tabs::before,
+  .tabs::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .tabs::before {
+    right: 0;
+    background: linear-gradient(to left, var(--card), transparent);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  }
+  
+  .tabs::after {
+    left: 0;
+    background: linear-gradient(to right, var(--card), transparent);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  }
+  
+  .tabs.has-scroll-left::before { opacity: 1; }
+  .tabs.has-scroll-right::after { opacity: 1; }
+
   .tab { 
     padding: 10px 14px; 
     text-align: center; 
@@ -253,17 +346,26 @@
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
+    position: relative;
+    margin: 0;
   }
   
   .tab:hover { background: var(--card-hover); color: var(--text); }
+  
+  /* ✅ تب فعال کاملا یکدست و تمیز - بدون هیچ سایه یا خط سفید */
   .tab.active { 
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: var(--primary);
     color: white;
     font-weight: 700;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+    box-shadow: none;
   }
   
   .tab svg { width: 16px; height: 16px; }
+
+  /* حذف کامل خط سفید زیر تب */
+  .tab::after {
+    display: none !important;
+  }
 
   .section { display: none; animation: fadeIn 0.3s; }
   .section.active { display: block; }
@@ -996,31 +1098,40 @@
   </div>
 </div>
 
-<div class="tabs">
-  <div class="tab active" data-tab="attendance">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    ثبت تردد
+<div class="tabs-wrapper">
+  <div class="tabs" id="tabsContainer">
+    <div class="tab active" data-tab="attendance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      ثبت تردد
+    </div>
+    <div class="tab" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      داشبورد
+    </div>
+    <div class="tab" data-tab="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      تقویم
+    </div>
+    <div class="tab" data-tab="employees">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      پرسنل
+    </div>
+    <div class="tab" data-tab="branches">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 7v14"/><path d="M21 7v14"/><path d="M6 7h12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+      شعبه‌ها
+    </div>
+    <div class="tab" data-tab="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      گزارش‌ها
+    </div>
   </div>
-  <div class="tab" data-tab="dashboard">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    داشبورد
-  </div>
-  <div class="tab" data-tab="calendar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    تقویم
-  </div>
-  <div class="tab" data-tab="employees">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    پرسنل
-  </div>
-  <div class="tab" data-tab="branches">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 7v14"/><path d="M21 7v14"/><path d="M6 7h12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
-    شعبه‌ها
-  </div>
-  <div class="tab" data-tab="reports">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    گزارش‌ها
-  </div>
+  
+  <button class="tabs-arrow right" id="tabsArrowRight" aria-label="بعدی">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="tabs-arrow left" id="tabsArrowLeft" aria-label="قبلی">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
 </div>
 
 <div class="section active" id="sec-attendance">
@@ -1054,6 +1165,11 @@
 <div class="section" id="sec-dashboard">
   <div class="card">
     <h2>📊 داشبورد آماری</h2>
+    
+    <select id="dashEmpFilter" style="background:var(--card-hover); border-color:var(--border); font-weight:600; margin-bottom:14px;">
+      <option value="all">👥 نمایش همه پرسنل</option>
+    </select>
+
     <div class="dash-grid">
       <div class="dash-card">
         <div class="label">👥 حاضر امروز</div>
@@ -1511,6 +1627,10 @@ function setupTabs(){
       t.classList.add('active');
       const s = document.getElementById('sec-' + t.dataset.tab);
       if (s) s.classList.add('active');
+      // تب فعال رو به وسط اسکرول کن
+      setTimeout(() => {
+        t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }, 50);
       if (app.ready) {
         if (t.dataset.tab === 'reports') app.loadReports();
         if (t.dataset.tab === 'employees') app.renderEmployees();
@@ -1520,6 +1640,85 @@ function setupTabs(){
       }
     });
   });
+}
+
+function setupTabsScroll() {
+  const tabsEl = document.getElementById('tabsContainer');
+  const arrowLeft = document.getElementById('tabsArrowLeft');
+  const arrowRight = document.getElementById('tabsArrowRight');
+  
+  if (!tabsEl || !arrowLeft || !arrowRight) return;
+
+  const updateArrows = () => {
+    const scrollLeft = tabsEl.scrollLeft;
+    const scrollWidth = tabsEl.scrollWidth;
+    const clientWidth = tabsEl.clientWidth;
+    
+    const isRTL = document.dir === 'rtl' || document.body.dir === 'rtl';
+    const maxScroll = scrollWidth - clientWidth;
+    
+    if (isRTL) {
+      const absScroll = Math.abs(scrollLeft);
+      const hasScroll = maxScroll > 5;
+      
+      if (hasScroll && absScroll < maxScroll - 5) {
+        arrowLeft.classList.add('visible');
+        tabsEl.classList.add('has-scroll-left');
+      } else {
+        arrowLeft.classList.remove('visible');
+        tabsEl.classList.remove('has-scroll-left');
+      }
+      
+      if (hasScroll && absScroll > 5) {
+        arrowRight.classList.add('visible');
+        tabsEl.classList.add('has-scroll-right');
+      } else {
+        arrowRight.classList.remove('visible');
+        tabsEl.classList.remove('has-scroll-right');
+      }
+    } else {
+      const hasScroll = maxScroll > 5;
+      if (hasScroll && scrollLeft < maxScroll - 5) {
+        arrowLeft.classList.add('visible');
+        tabsEl.classList.add('has-scroll-left');
+      } else {
+        arrowLeft.classList.remove('visible');
+        tabsEl.classList.remove('has-scroll-left');
+      }
+      
+      if (hasScroll && scrollLeft > 5) {
+        arrowRight.classList.add('visible');
+        tabsEl.classList.add('has-scroll-right');
+      } else {
+        arrowRight.classList.remove('visible');
+        tabsEl.classList.remove('has-scroll-right');
+      }
+    }
+  };
+
+  arrowLeft.addEventListener('click', () => {
+    tabsEl.scrollBy({ left: -150, behavior: 'smooth' });
+    setTimeout(updateArrows, 350);
+  });
+  
+  arrowRight.addEventListener('click', () => {
+    tabsEl.scrollBy({ left: 150, behavior: 'smooth' });
+    setTimeout(updateArrows, 350);
+  });
+
+  tabsEl.addEventListener('scroll', updateArrows);
+  window.addEventListener('resize', updateArrows);
+  
+  setTimeout(updateArrows, 100);
+  
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      setTimeout(updateArrows, 100);
+    });
+  });
+  
+  const observer = new MutationObserver(updateArrows);
+  observer.observe(tabsEl, { childList: true, subtree: true });
 }
 
 async function initApp(){
@@ -1653,7 +1852,6 @@ async function getBranchNameMap(ids){
   return new Map((data || []).map(b => [b.id, b.name]));
 }
 
-// ---------- Calendar ----------
 function fillCalEmpSelect() {
   const sel = document.getElementById('calEmpSelect');
   if (!sel) return;
@@ -1709,7 +1907,6 @@ async function loadCalendar() {
     return; 
   }
 
-  // ✅ گرفتن نام شعبه‌ها برای نمایش در کنار هر روز
   const brMap = await getBranchNameMap((attData || []).map(r => r.branch_id));
 
   const recordsByDate = {};
@@ -1743,7 +1940,6 @@ async function loadCalendar() {
     let rowClass = 'status-empty';
 
     if (rec) {
-      // ✅ نمایش نام شعبه در کنار وضعیت
       const brName = brMap.get(rec.branch_id);
       const branchChip = brName 
         ? ` <span class="chip" style="font-size:10px; padding:2px 6px; margin-right:4px;">🏢 ${brName}</span>` 
@@ -2016,10 +2212,18 @@ function fillEmpSelect(){
 
 function fillReportFilter(){
   const sel = document.getElementById('reportEmpFilter');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
-  if (cur && cur !== 'all') sel.value = cur;
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
+    if (cur && cur !== 'all') sel.value = cur;
+  }
+
+  const dashSel = document.getElementById('dashEmpFilter');
+  if (dashSel) {
+    const curDash = dashSel.value;
+    dashSel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
+    if (curDash && curDash !== 'all') dashSel.value = curDash;
+  }
 }
 
 function filterEmpSelectBySearch(query) {
@@ -2300,16 +2504,36 @@ async function loadReports(){
 
 async function loadDashboard(){
   if (!navigator.onLine) { toast('برای مشاهده داشبورد نیاز به اینترنت دارید', 'error'); return; }
+  
   try {
-    const today = getLocalDateStr();
     const now = new Date();
-    const monthStart = getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
-    const monthEnd = getLocalDateStr(new Date(now.getFullYear(), now.getMonth()+1, 1));
+    const todayStr = getLocalDateStr(now);
 
-    const { data: todayData } = await app.db.from('attendance').select('*').eq('work_date', today);
-    const { data: monthData } = await app.db.from('attendance').select('*').gte('work_date', monthStart).lt('work_date', monthEnd);
+    const jNow = getJalaliParts(now);
+    const jMonthStart = getGregorianFromJalali(jNow.year, jNow.month, 1);
+    const jMonthEnd = getGregorianFromJalali(jNow.year, jNow.month, getJalaliMonthDays(jNow.year, jNow.month));
+    
+    const monthStartStr = getLocalDateStr(jMonthStart);
+    const monthEndStr = getLocalDateStr(jMonthEnd);
+
+    const filterEmpId = document.getElementById('dashEmpFilter')?.value || 'all';
+
+    let queryToday = app.db.from('attendance').select('*').eq('work_date', todayStr);
+    let queryMonth = app.db.from('attendance').select('*').gte('work_date', monthStartStr).lte('work_date', monthEndStr);
+
+    if (filterEmpId !== 'all') {
+      queryToday = queryToday.eq('employee_id', Number(filterEmpId));
+      queryMonth = queryMonth.eq('employee_id', Number(filterEmpId));
+    }
+
+    const [{ data: todayData, error: errToday }, { data: monthData, error: errMonth }] = await Promise.all([
+      queryToday, queryMonth
+    ]);
+
+    if (errToday || errMonth) throw new Error((errToday || errMonth).message);
 
     let presentToday = 0, leaveToday = 0, totalToday = 0, lateMonth = 0;
+    
     (todayData || []).forEach(r => {
       if (r.status === 'leave') leaveToday++;
       else if (r.check_in) presentToday++;
@@ -2326,13 +2550,14 @@ async function loadDashboard(){
       }
     });
 
-    let totalMonth = 0;
-    empTotals.forEach(v => totalMonth += v);
+    let totalMonthMins = 0;
+    empTotals.forEach(v => totalMonthMins += v);
+    const totalMonthHM = minutesToHM(totalMonthMins);
 
     document.getElementById('dashPresentToday').textContent = faNum(presentToday);
     document.getElementById('dashLeaveToday').textContent = faNum(leaveToday);
     document.getElementById('dashTotalToday').textContent = faNum(minutesToHM(totalToday).h);
-    document.getElementById('dashTotalMonth').textContent = faNum(minutesToHM(totalMonth).h);
+    document.getElementById('dashTotalMonth').textContent = faNum(totalMonthHM.h);
     document.getElementById('dashTotalEmp').textContent = faNum(app.employees.length);
 
     const lateCard = document.getElementById('dashLateCard');
@@ -2343,18 +2568,28 @@ async function loadDashboard(){
       lateCard.style.display = 'none';
     }
 
+    const allEmpIds = [...empTotals.keys()];
+    let empNameMap = new Map();
+    if (allEmpIds.length > 0) {
+       const { data: emps } = await app.db.from('employees').select('id,name').in('id', allEmpIds);
+       (emps || []).forEach(e => empNameMap.set(e.id, e.name));
+    }
+
     const sorted = [...empTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0, 5);
     const topEl = document.getElementById('dashTopList');
-    if (!sorted.length) { topEl.innerHTML = '<div class="empty">داده‌ای برای این ماه نیست</div>'; }
-    else {
+    
+    if (!sorted.length) { 
+      topEl.innerHTML = '<div class="empty">داده‌ای برای این ماه نیست</div>'; 
+    } else {
       topEl.innerHTML = sorted.map(([empId, mins], i) => {
-        const emp = app.employees.find(e => e.id === empId);
+        const empName = empNameMap.get(empId) || 'نامشخص';
         const hm = minutesToHM(mins);
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
-        return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong style="color:var(--primary);">${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
+        return `<div class="branch-item"><span>${medal} ${empName}</span><strong style="color:var(--primary);">${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
       }).join('');
     }
   } catch (err) {
+    console.error('[Dashboard] خطا:', err);
     toast('خطا در داشبورد: ' + err.message, 'error');
   }
 }
@@ -2549,6 +2784,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!authenticated) return;
 
   setupTabs();
+  setupTabsScroll();
 
   document.getElementById('btnCheckIn')?.addEventListener('click', doCheckIn);
   document.getElementById('btnCheckOut')?.addEventListener('click', doCheckOut);
@@ -2559,6 +2795,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     localStorage.setItem(LS_KEYS.reportEmp, e.target.value);
     loadReports();
   });
+  
+  document.getElementById('dashEmpFilter')?.addEventListener('change', loadDashboard);
+
   document.getElementById('reportSearch')?.addEventListener('input', () => loadReports());
   document.getElementById('todayBranchFilter')?.addEventListener('change', (e) => {
     localStorage.setItem(LS_KEYS.todayBranch, e.target.value);
