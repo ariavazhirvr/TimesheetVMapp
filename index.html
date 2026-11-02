@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#10b981">
+<meta name="theme-color" content="#6366f1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="تردد پرسنل">
@@ -11,145 +11,896 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<!-- پلاگین‌های تقویم شمسی -->
 <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
 <style>
-  * { box-sizing: border-box; font-family: Tahoma, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+  * { box-sizing: border-box; font-family: 'Vazirmatn', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
+  
   :root {
-    --bg: #f0f2f5; --card: #ffffff; --text: #333; --muted: #666;
-    --border: #e5e7eb; --input-border: #ddd; --input-bg: #fff;
-    --record-bg: #f9fafb; --chip-bg: #eff6ff; --chip-text: #1e40af;
-    --total-bg: #eff6ff; --total-text: #1e40af;
-    --present-bg: #f0fdf4; --leave-bg: #fffbeb; --danger-bg: #fee2e2;
-    --header-bg: #ffffff;
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --success: #10b981;
+    --success-dark: #059669;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    
+    --bg: #f1f5f9;
+    --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e0e7ff 100%);
+    --card: #ffffff;
+    --card-hover: #f8fafc;
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --input-border: #cbd5e1;
+    --input-bg: #ffffff;
+    
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
   }
+  
   body.dark {
-    --bg: #111827; --card: #1f2937; --text: #f3f4f6; --muted: #9ca3af;
-    --border: #374151; --input-border: #4b5563; --input-bg: #374151;
-    --record-bg: #111827; --chip-bg: #1e3a8a; --chip-text: #93c5fd;
-    --total-bg: #1e3a8a; --total-text: #93c5fd;
-    --present-bg: #064e3b; --leave-bg: #78350f; --danger-bg: #7f1d1d;
-    --header-bg: #1f2937;
+    --bg: #0f172a;
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    --card: #1e293b;
+    --card-hover: #334155;
+    --text: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --muted: #94a3b8;
+    --border: #334155;
+    --input-border: #475569;
+    --input-bg: #334155;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.6);
   }
-  body { background:var(--bg); color:var(--text); padding:12px; margin:0; padding-bottom:40px; transition: background .2s, color .2s; }
-  .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); transition: background .2s; }
-  h2 { margin:0 0 12px; color:var(--text); font-size:16px; }
-  input, select, button, textarea { width:100%; padding:10px; margin:6px 0; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--input-bg); color:var(--text); }
-  button { background:#10b981; color:white; border:none; cursor:pointer; font-weight:bold; }
-  button:active { opacity:.8; }
-  button:disabled { opacity:.5; cursor:not-allowed; }
-  button.danger { background:#ef4444; }
-  button.primary { background:#3b82f6; }
-  button.warning { background:#f59e0b; }
-  button.small { padding:6px; font-size:12px; width:auto; }
-  button.ghost { background:transparent; border:1px solid var(--input-border); color:var(--text); }
-  .time-display { font-size:26px; text-align:center; color:#10b981; font-weight:bold; margin:4px 0; }
-  .date-display { text-align:center; color:var(--muted); font-size:13px; }
-  .tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
-  .tab { flex:1; padding:10px 4px; text-align:center; background:var(--card); color:var(--text); border-radius:8px; cursor:pointer; font-size:12px; border:2px solid transparent; user-select:none; min-width:70px; }
-  .tab.active { border-color:#3b82f6; color:#3b82f6; font-weight:bold; }
-  .section { display:none; }
-  .section.active { display:block; }
-  .chip { display:inline-block; background:var(--chip-bg); color:var(--chip-text); padding:4px 8px; border-radius:6px; font-size:12px; margin:2px; }
 
-  .record-item { background:var(--record-bg); border-radius:8px; padding:10px; margin-bottom:6px; border-right:3px solid #10b981; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
-  .record-item.out { border-right-color:#ef4444; }
-  .record-item.leave { border-right-color:#f59e0b; background:var(--leave-bg); }
-  .record-item.late { border-right-color:#f97316; }
-  .record-item.offline { border-right-color:#f59e0b; border-right-style: dashed; background:#fffbeb; }
-  .record-content { flex:1; }
-  .record-item .meta { font-size:12px; color:var(--muted); margin-top:2px; }
+  body { 
+    background: var(--bg-gradient); 
+    background-attachment: fixed;
+    color: var(--text); 
+    padding: 12px; 
+    margin: 0; 
+    padding-bottom: 80px;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  /* اسکرول‌بار */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 3px; }
 
-  .action-btns { display:flex; flex-direction:row; gap:6px; align-items:center; }
-  .btn-icon { background:var(--chip-bg); color:var(--chip-text); border:none; border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0; font-weight:bold; }
-  .btn-icon.del { background:var(--danger-bg); color:#ef4444; }
-  .btn-icon.edit { background:#fef3c7; color:#d97706; }
+  /* ============ کارت‌ها ============ */
+  .card { 
+    background: var(--card); 
+    border-radius: var(--radius-lg); 
+    padding: 18px; 
+    margin-bottom: 14px; 
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border);
+  }
+  
+  .card:hover { box-shadow: var(--shadow-lg); }
 
-  .total-box { background:var(--total-bg); border-radius:8px; padding:10px; text-align:center; margin-top:8px; font-size:13px; color:var(--text); }
-  .total-box strong { color:var(--total-text); }
-  .employee-card { border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; }
-  .employee-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .stats { font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
-  .empty { text-align:center; color:var(--muted); padding:20px; font-size:13px; }
-  .branch-item { display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--record-bg); border-radius:6px; margin-bottom:4px; font-size:13px; }
-  details { margin-top:6px; }
-  summary { cursor:pointer; color:#3b82f6; font-size:13px; padding:4px 0; }
-  #bootMsg { background:#fef3c7; color:#92400e; padding:10px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:10px; transition:0.3s; }
-  body.dark #bootMsg { background:#78350f; color:#fcd34d; }
-  #offlineBanner { display:none; background:#ef4444; color:white; padding:10px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:10px; font-weight:bold; }
+  h2 { 
+    margin: 0 0 14px; 
+    color: var(--text); 
+    font-size: 15px; 
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  h2::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 2px;
+  }
 
-  .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000; padding:20px; }
-  .modal-overlay.active { display:flex; }
-  .modal-box { background:var(--card); color:var(--text); border-radius:12px; padding:20px; width:100%; max-width:420px; box-shadow:0 4px 12px rgba(0,0,0,0.15); max-height:90vh; overflow-y:auto; }
-  .modal-box h3 { margin:0 0 16px; font-size:16px; color:var(--text); text-align:center; }
-  .modal-actions { display:flex; gap:8px; margin-top:16px; }
-  .modal-actions button { margin:0; }
+  /* ============ فرم‌ها ============ */
+  input, select, button, textarea { 
+    width: 100%; 
+    padding: 11px 14px; 
+    margin: 6px 0; 
+    border: 1.5px solid var(--input-border); 
+    border-radius: var(--radius-md); 
+    font-size: 14px; 
+    font-family: inherit;
+    background: var(--input-bg); 
+    color: var(--text);
+    transition: all 0.2s;
+    outline: none;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+  
+  input::placeholder { color: var(--muted); }
 
-  .calendar-row { display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
-  .calendar-row:last-child { border-bottom:none; }
-  .calendar-row .day-info { display:flex; flex-direction:column; }
-  .calendar-row .status { font-size:11px; margin-top:2px; }
-  .calendar-row.status-present { background:var(--present-bg); }
-  .calendar-row.status-leave { background:var(--leave-bg); }
-  .calendar-row.status-empty { color:var(--muted); }
-  .calendar-row.today { border-right:3px solid #3b82f6; }
+  button { 
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+  }
+  
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4); }
+  button:active { transform: translateY(0); opacity: 0.9; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  
+  button.success { background: linear-gradient(135deg, var(--success), var(--success-dark)); box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); }
+  button.success:hover { box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4); }
+  
+  button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); }
+  button.danger:hover { box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4); }
+  
+  button.warning { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); }
+  button.warning:hover { box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4); }
+  
+  button.primary { background: linear-gradient(135deg, var(--info), #2563eb); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); }
+  
+  button.small { padding: 6px 10px; font-size: 12px; width: auto; }
+  button.ghost { 
+    background: transparent; 
+    border: 1.5px solid var(--input-border); 
+    color: var(--text); 
+    box-shadow: none;
+  }
+  button.ghost:hover { background: var(--card-hover); box-shadow: none; transform: none; }
 
-  .cal-summary { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  .cal-summary .box { flex:1; min-width:80px; background:var(--record-bg); padding:10px; border-radius:8px; text-align:center; font-size:12px; color:var(--muted); }
-  .cal-summary .box strong { display:block; font-size:16px; color:var(--total-text); margin-bottom:4px; }
+  /* ============ ساعت زنده ============ */
+  .clock-container {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+    color: white;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .clock-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+  }
+  
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .time-display { 
+    font-size: 38px; 
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 6px 0;
+    position: relative;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .date-display { 
+    font-size: 13px; 
+    opacity: 0.95;
+    position: relative;
+    font-weight: 500;
+  }
 
-  .search-input { background:var(--record-bg); border-color:var(--input-border); }
+  /* ============ تب‌ها ============ */
+  .tabs { 
+    display: flex; 
+    gap: 6px; 
+    margin-bottom: 14px; 
+    overflow-x: auto;
+    padding: 4px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  
+  .tab { 
+    padding: 10px 14px; 
+    text-align: center; 
+    background: transparent;
+    color: var(--text-secondary); 
+    border-radius: var(--radius-md); 
+    cursor: pointer; 
+    font-size: 13px; 
+    font-weight: 500;
+    user-select: none; 
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  
+  .tab:hover { background: var(--card-hover); color: var(--text); }
+  .tab.active { 
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+  }
+  
+  .tab svg { width: 16px; height: 16px; }
 
-  #toastContainer { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:3000; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
-  .toast { background:#1f2937; color:#fff; padding:10px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,.2); animation:slideDown .3s ease; max-width:90vw; }
-  .toast.success { background:#065f46; }
-  .toast.error { background:#991b1b; }
-  .toast.warning { background:#92400e; }
-  .toast.info { background:#1e40af; }
-  @keyframes slideDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  .section { display: none; animation: fadeIn 0.3s; }
+  .section.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-  .header-actions { display:flex; gap:6px; justify-content:flex-end; margin-bottom:8px; }
-  .header-actions button { width:auto; padding:6px 10px; font-size:12px; margin:0; }
+  /* ============ چیپ ============ */
+  .chip { 
+    display: inline-flex; 
+    align-items: center;
+    gap: 4px;
+    background: rgba(99, 102, 241, 0.1); 
+    color: var(--primary); 
+    padding: 3px 8px; 
+    border-radius: 6px; 
+    font-size: 11px; 
+    font-weight: 600;
+    margin: 2px;
+  }
+  
+  body.dark .chip { background: rgba(129, 140, 248, 0.15); color: var(--primary-light); }
 
-  #pinScreen { position:fixed; inset:0; background:var(--bg); z-index:2000; display:none; align-items:center; justify-content:center; flex-direction:column; padding:20px; }
-  #pinScreen.active { display:flex; }
-  .pin-box { background:var(--card); border-radius:16px; padding:24px; max-width:320px; width:100%; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.15); }
-  .pin-box h2 { color:var(--text); margin-bottom:16px; }
-  .pin-dots { display:flex; justify-content:center; gap:12px; margin:20px 0; }
-  .pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid #3b82f6; }
-  .pin-dot.filled { background:#3b82f6; }
-  .pin-keys { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:16px; }
-  .pin-keys button { padding:16px 0; font-size:18px; font-weight:bold; background:var(--record-bg); color:var(--text); border:1px solid var(--input-border); }
-  .pin-keys button[data-val="clear"] { background:#f59e0b; color:#fff; }
-  .pin-keys button[data-val="del"] { background:#ef4444; color:#fff; }
-  .pin-error { color:#ef4444; font-size:12px; margin-top:8px; min-height:18px; }
+  /* ============ رکوردها ============ */
+  .record-item { 
+    background: var(--card-hover); 
+    border-radius: var(--radius-md); 
+    padding: 12px; 
+    margin-bottom: 8px; 
+    border-right: 4px solid var(--success);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 10px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .record-item::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: inherit;
+  }
+  
+  .record-item:hover { transform: translateX(-2px); box-shadow: var(--shadow-sm); }
+  .record-item.out { border-right-color: var(--danger); }
+  .record-item.leave { border-right-color: var(--warning); background: rgba(245, 158, 11, 0.05); }
+  .record-item.late { border-right-color: #f97316; }
+  .record-item.offline { border-right-color: var(--warning); border-right-style: dashed; background: rgba(245, 158, 11, 0.08); }
+  
+  .record-content { flex: 1; min-width: 0; }
+  .record-content strong { font-size: 14px; color: var(--text); display: block; margin-bottom: 2px; }
+  .record-item .meta { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-  .dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
-  .dash-card { background:var(--card); border-radius:12px; padding:14px; text-align:center; }
-  .dash-card .label { font-size:12px; color:var(--muted); margin-bottom:6px; }
-  .dash-card .value { font-size:24px; font-weight:bold; color:#3b82f6; }
-  .dash-card .value.green { color:#10b981; }
-  .dash-card .value.orange { color:#f59e0b; }
-  .dash-card .value.red { color:#ef4444; }
-  .dash-card .sub { font-size:11px; color:var(--muted); margin-top:4px; }
+  /* ============ دکمه‌های آیکون ============ */
+  .action-btns { display: flex; gap: 6px; align-items: center; }
+  
+  .btn-icon { 
+    background: var(--card-hover); 
+    color: var(--text-secondary); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius-sm); 
+    padding: 8px; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0; 
+    width: 34px;
+    height: 34px;
+    transition: all 0.2s;
+    box-shadow: none;
+  }
+  
+  .btn-icon:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn-icon svg { width: 16px; height: 16px; }
+  .btn-icon.edit { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+  .btn-icon.del { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+  
+  body.dark .btn-icon.edit { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
 
-  .settings-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
-  .settings-row:last-child { border-bottom:none; }
-  .settings-row label { font-size:13px; color:var(--text); }
-  .settings-row input[type="time"] { width:120px; margin:0; }
-  .settings-row input[type="checkbox"] { width:auto; margin:0; }
+  /* ============ جعبه جمع ============ */
+  .total-box { 
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(129, 140, 248, 0.05));
+    border: 1.5px dashed var(--primary-light);
+    border-radius: var(--radius-md); 
+    padding: 12px; 
+    text-align: center; 
+    margin-top: 10px; 
+    font-size: 13px; 
+    color: var(--text);
+    font-weight: 500;
+  }
+  .total-box strong { color: var(--primary); font-size: 16px; font-weight: 800; }
 
-  /* استایل تقویم شمسی */
-  .datepicker-plot-area { font-family: Tahoma, sans-serif !important; }
+  /* ============ کارت پرسنل ============ */
+  .employee-card { 
+    background: var(--card);
+    border: 1px solid var(--border); 
+    border-radius: var(--radius-md); 
+    padding: 14px; 
+    margin-bottom: 10px;
+    transition: all 0.2s;
+  }
+  
+  .employee-card:hover { box-shadow: var(--shadow-md); }
+  
+  .employee-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    gap: 8px;
+  }
+  
+  .employee-header strong { font-size: 14px; }
+  
+  .stats { 
+    font-size: 12px; 
+    color: var(--muted); 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .stat-item {
+    background: var(--card-hover);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  
+  .stat-item strong { color: var(--primary); font-size: 13px; }
+
+  /* ============ آیتم شعبه ============ */
+  .branch-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 14px; 
+    background: var(--card-hover); 
+    border-radius: var(--radius-md); 
+    margin-bottom: 8px; 
+    font-size: 13px;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+  }
+  
+  .branch-item:hover { background: var(--card); box-shadow: var(--shadow-sm); }
+  
+  .branch-item > span { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ============ جزئیات ============ */
+  details { margin-top: 8px; }
+  summary { 
+    cursor: pointer; 
+    color: var(--primary); 
+    font-size: 13px; 
+    padding: 8px 0;
+    font-weight: 600;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  summary:hover { color: var(--primary-dark); }
+  summary::marker { color: var(--primary); }
+
+  /* ============ خالی ============ */
+  .empty { 
+    text-align: center; 
+    color: var(--muted); 
+    padding: 30px 20px; 
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .empty svg { width: 48px; height: 48px; opacity: 0.4; }
+
+  /* ============ پیام‌های وضعیت ============ */
+  #bootMsg { 
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e; 
+    padding: 12px; 
+    border-radius: var(--radius-md); 
+    font-size: 13px; 
+    text-align: center; 
+    margin-bottom: 12px;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  body.dark #bootMsg { background: linear-gradient(135deg, #78350f, #92400e); color: #fcd34d; }
+  
+  #offlineBanner { 
+    display: none; 
+    background: linear-gradient(135deg, var(--danger), #dc2626);
+    color: white; 
+    padding: 12px; 
+    border-radius: var(--radius-md); 
+    font-size: 13px; 
+    text-align: center; 
+    margin-bottom: 12px; 
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+
+  /* ============ مودال ============ */
+  .modal-overlay { 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+    padding: 20px;
+    animation: fadeIn 0.2s;
+  }
+  .modal-overlay.active { display: flex; }
+  
+  .modal-box { 
+    background: var(--card); 
+    color: var(--text); 
+    border-radius: var(--radius-xl); 
+    padding: 24px; 
+    width: 100%; 
+    max-width: 440px; 
+    box-shadow: var(--shadow-xl);
+    max-height: 90vh; 
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(30px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  
+  .modal-box h3 { 
+    margin: 0 0 18px; 
+    font-size: 16px; 
+    color: var(--text); 
+    text-align: center;
+    font-weight: 700;
+  }
+  
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { margin: 0; flex: 1; }
+
+  /* ============ تقویم ============ */
+  .calendar-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 14px; 
+    border-bottom: 1px solid var(--border); 
+    font-size: 13px; 
+    color: var(--text);
+    transition: all 0.2s;
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
+  }
+  
+  .calendar-row:last-child { border-bottom: none; }
+  .calendar-row:hover { background: var(--card-hover); }
+  
+  .calendar-row .day-info { display: flex; flex-direction: column; gap: 3px; }
+  .calendar-row .day-info strong { font-size: 13px; font-weight: 600; }
+  .calendar-row .status { font-size: 11px; margin-top: 2px; }
+  
+  .calendar-row.status-present { background: rgba(16, 185, 129, 0.08); border-right: 3px solid var(--success); }
+  .calendar-row.status-leave { background: rgba(245, 158, 11, 0.08); border-right: 3px solid var(--warning); }
+  .calendar-row.status-empty { color: var(--muted); border-right: 3px solid var(--border); }
+  .calendar-row.today { border-right-color: var(--primary) !important; border-right-width: 4px !important; box-shadow: 0 0 0 1px var(--primary-light); }
+
+  .cal-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  
+  .cal-summary .box { 
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(129, 140, 248, 0.03));
+    padding: 12px 8px; 
+    border-radius: var(--radius-md); 
+    text-align: center; 
+    font-size: 11px; 
+    color: var(--muted);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+  }
+  
+  .cal-summary .box strong { 
+    display: block; 
+    font-size: 18px; 
+    color: var(--primary); 
+    margin-bottom: 3px; 
+    font-weight: 800;
+  }
+
+  .search-input { background: var(--card-hover); border-color: var(--border); }
+
+  /* ============ Toast ============ */
+  #toastContainer { 
+    position: fixed; 
+    top: 16px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    z-index: 3000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    pointer-events: none;
+    width: calc(100% - 32px);
+    max-width: 400px;
+  }
+  
+  .toast { 
+    background: var(--text);
+    color: white; 
+    padding: 12px 16px; 
+    border-radius: var(--radius-md); 
+    font-size: 13px; 
+    box-shadow: var(--shadow-lg); 
+    animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+  }
+  
+  .toast.success { background: linear-gradient(135deg, var(--success), var(--success-dark)); }
+  .toast.error { background: linear-gradient(135deg, var(--danger), #dc2626); }
+  .toast.warning { background: linear-gradient(135deg, var(--warning), #d97706); }
+  .toast.info { background: linear-gradient(135deg, var(--info), #2563eb); }
+  
+  @keyframes slideDown { 
+    from { transform: translateY(-20px); opacity: 0; } 
+    to { transform: translateY(0); opacity: 1; } 
+  }
+
+  /* ============ هدر اکشن‌ها ============ */
+  .header-actions { 
+    display: flex; 
+    gap: 8px; 
+    justify-content: space-between; 
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  
+  .header-actions .brand {
+    font-size: 15px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .header-actions button { 
+    width: auto; 
+    padding: 8px 12px; 
+    font-size: 12px; 
+    margin: 0;
+  }
+
+  /* ============ PIN ============ */
+  #pinScreen { 
+    position: fixed; 
+    inset: 0; 
+    background: var(--bg-gradient); 
+    z-index: 2000; 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+    flex-direction: column; 
+    padding: 20px;
+  }
+  #pinScreen.active { display: flex; }
+  
+  .pin-box { 
+    background: var(--card); 
+    border-radius: var(--radius-xl); 
+    padding: 32px 24px; 
+    max-width: 340px; 
+    width: 100%; 
+    text-align: center; 
+    box-shadow: var(--shadow-xl);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .pin-box h2 { 
+    color: var(--text); 
+    margin-bottom: 20px; 
+    justify-content: center;
+    font-size: 18px;
+  }
+  
+  .pin-box h2::before { display: none; }
+  
+  .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 24px 0; }
+  
+  .pin-dot { 
+    width: 16px; 
+    height: 16px; 
+    border-radius: 50%; 
+    border: 2.5px solid var(--primary); 
+    transition: all 0.2s;
+  }
+  
+  .pin-dot.filled { 
+    background: var(--primary); 
+    transform: scale(1.15);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+  }
+  
+  .pin-keys { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+    margin-top: 20px; 
+  }
+  
+  .pin-keys button { 
+    padding: 18px 0; 
+    font-size: 20px; 
+    font-weight: 700; 
+    background: var(--card-hover); 
+    color: var(--text); 
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+    transition: all 0.15s;
+  }
+  
+  .pin-keys button:hover { background: var(--primary); color: white; transform: scale(1.05); }
+  .pin-keys button[data-val="clear"] { background: var(--warning); color: #fff; border-color: transparent; }
+  .pin-keys button[data-val="del"] { background: var(--danger); color: #fff; border-color: transparent; }
+  
+  .pin-error { color: var(--danger); font-size: 12px; margin-top: 12px; min-height: 18px; font-weight: 600; }
+
+  /* ============ داشبورد ============ */
+  .dash-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px; 
+    margin-bottom: 14px; 
+  }
+  
+  .dash-card { 
+    background: var(--card); 
+    border-radius: var(--radius-lg); 
+    padding: 16px; 
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  }
+  
+  .dash-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .dash-card .label { font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+  .dash-card .value { font-size: 28px; font-weight: 800; color: var(--primary); line-height: 1; }
+  .dash-card .value.green { color: var(--success); }
+  .dash-card .value.orange { color: var(--warning); }
+  .dash-card .value.red { color: var(--danger); }
+  .dash-card .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* ============ تنظیمات ============ */
+  .settings-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 0; 
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row label { font-size: 13px; color: var(--text); font-weight: 500; }
+  .settings-row input[type="time"] { width: 130px; margin: 0; }
+  .settings-row input[type="checkbox"] { 
+    width: 20px; 
+    height: 20px; 
+    margin: 0; 
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+
+  /* ============ FAB ============ */
+  .fab-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 500;
+  }
+  
+  .fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    padding: 0;
+  }
+  
+  .fab:hover { transform: scale(1.1) rotate(15deg); box-shadow: var(--shadow-xl); }
+  .fab svg { width: 24px; height: 24px; }
+  
+  .fab-menu {
+    position: absolute;
+    bottom: 68px;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s;
+  }
+  
+  .fab-container.open .fab-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .fab-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  
+  .fab-item:hover { transform: translateX(-4px); box-shadow: var(--shadow-lg); }
+  .fab-item svg { width: 18px; height: 18px; color: var(--primary); }
+
+  /* ============ استایل تقویم شمسی ============ */
+  .datepicker-plot-area { 
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important; 
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
   .datepicker-day-view .table-days td span { font-size: 14px; }
+
+  /* ============ ریسپانسیو ============ */
+  @media (max-width: 480px) {
+    body { padding: 8px; }
+    .card { padding: 14px; border-radius: var(--radius-md); }
+    .time-display { font-size: 32px; }
+    .dash-grid { gap: 8px; }
+    .dash-card { padding: 12px; }
+    .dash-card .value { font-size: 24px; }
+    .cal-summary { grid-template-columns: 1fr; }
+    .cal-summary .box { display: flex; justify-content: space-between; align-items: center; text-align: right; }
+    .cal-summary .box strong { margin-bottom: 0; }
+    h2 { font-size: 14px; }
+  }
+  
+  @media (min-width: 768px) {
+    body { max-width: 720px; margin: 0 auto; }
+  }
+
+  /* ============ Spinner ============ */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
+<!-- ============ PIN Screen ============ -->
 <div id="pinScreen">
   <div class="pin-box">
     <h2>🔐 ورود به سیستم</h2>
@@ -169,23 +920,25 @@
 <div id="toastContainer"></div>
 
 <div id="bootMsg">در حال راه‌اندازی...</div>
-<div id="offlineBanner">⚠️ اینترنت قطع است. ثبت ورود فعال است و اطلاعات روی گوشی ذخیره می‌شود.</div>
+<div id="offlineBanner">⚠️ اینترنت قطع است. ورود آفلاین فعال است.</div>
 
+<!-- ============ Edit Modal ============ -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ ویرایش زمان تردد</h3>
     <input type="hidden" id="editRecId">
-    <label style="font-size:12px; color:var(--muted);">ساعت ورود (HH:mm)</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">ساعت ورود</label>
     <input type="time" id="editCheckIn">
-    <label style="font-size:12px; color:var(--muted);">ساعت خروج (HH:mm)</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">ساعت خروج</label>
     <input type="time" id="editCheckOut">
     <div class="modal-actions">
-      <button class="primary" onclick="saveEditTime()">💾 ذخیره</button>
-      <button class="danger" onclick="closeEditModal()">انصراف</button>
+      <button class="success" onclick="saveEditTime()">💾 ذخیره</button>
+      <button class="ghost" onclick="closeEditModal()">انصراف</button>
     </div>
   </div>
 </div>
 
+<!-- ============ Calendar Edit Modal ============ -->
 <div class="modal-overlay" id="calendarEditModal">
   <div class="modal-box">
     <h3 id="calModalTitle">ویرایش روز</h3>
@@ -194,103 +947,146 @@
     <input type="hidden" id="calEmpId">
     <input type="hidden" id="calBranchId">
 
-    <label style="font-size:12px; color:var(--muted);">ساعت ورود</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">شعبه</label>
+    <select id="calBranchSelect">
+      <option value="">بدون شعبه</option>
+    </select>
+
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">ساعت ورود</label>
     <input type="time" id="calCheckIn">
 
-    <label style="font-size:12px; color:var(--muted);">ساعت خروج</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">ساعت خروج</label>
     <input type="time" id="calCheckOut">
 
-    <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="calIsLeave" style="width:auto; margin:0;">
-      <label for="calIsLeave" style="font-size:14px; cursor:pointer;">ثبت به عنوان مرخصی تمام روز</label>
+    <div style="margin-top:14px; display:flex; align-items:center; gap:10px; padding:10px; background:var(--card-hover); border-radius:var(--radius-md);">
+      <input type="checkbox" id="calIsLeave" style="width:auto; margin:0; accent-color:var(--warning);">
+      <label for="calIsLeave" style="font-size:13px; cursor:pointer; font-weight:600;">🌴 مرخصی تمام روز</label>
     </div>
 
     <div class="modal-actions">
-      <button class="primary" onclick="saveCalendarEdit()">💾 ذخیره</button>
-      <button class="danger" onclick="closeCalendarModal()">انصراف</button>
+      <button class="success" onclick="saveCalendarEdit()">💾 ذخیره</button>
+      <button class="ghost" onclick="closeCalendarModal()">انصراف</button>
     </div>
   </div>
 </div>
 
-<!-- مودال ویرایش پرسنل -->
+<!-- ============ Employee Edit Modal ============ -->
 <div class="modal-overlay" id="empEditModal">
   <div class="modal-box">
-    <h3>✏️ ویرایش نام پرسنل</h3>
+    <h3>✏️ ویرایش اطلاعات پرسنل</h3>
     <input type="hidden" id="editEmpId">
-    <label style="font-size:12px; color:var(--muted);">نام و نام خانوادگی</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600;">نام و نام خانوادگی</label>
     <input type="text" id="editEmpName">
-    <label style="font-size:12px; color:var(--muted); margin-top:8px;">شعبه</label>
+    <label style="font-size:12px; color:var(--muted); font-weight:600; margin-top:8px;">شعبه</label>
     <select id="editEmpBranch"><option value="">بدون شعبه</option></select>
     <div class="modal-actions">
-      <button class="primary" onclick="saveEmployeeEdit()">💾 ذخیره</button>
-      <button class="danger" onclick="closeEmpEditModal()">انصراف</button>
+      <button class="success" onclick="saveEmployeeEdit()">💾 ذخیره</button>
+      <button class="ghost" onclick="closeEmpEditModal()">انصراف</button>
     </div>
   </div>
 </div>
 
+<!-- ============ Settings Modal ============ -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal-box">
-    <h3>⚙️ تنظیمات</h3>
+    <h3>⚙️ تنظیمات سیستم</h3>
     <div class="settings-row">
-      <label>ساعت شروع کاری</label>
+      <label>⏰ ساعت شروع کاری</label>
       <input type="time" id="setStartTime" value="08:00">
     </div>
     <div class="settings-row">
-      <label>ساعت پایان کاری</label>
+      <label>⏰ ساعت پایان کاری</label>
       <input type="time" id="setEndTime" value="17:00">
     </div>
-    <div class="settings-row" style="background:rgba(59, 130, 246, 0.05); padding:10px; border-radius:8px; border:1px solid rgba(59, 130, 246, 0.2); margin:10px 0;">
-      <label style="font-weight:bold; color:#3b82f6;">فعال‌سازی محاسبه تأخیر</label>
+    <div class="settings-row" style="background:rgba(99, 102, 241, 0.06); padding:12px; border-radius:var(--radius-md); border:1px solid rgba(99, 102, 241, 0.2); margin:10px 0;">
+      <label style="font-weight:700; color:var(--primary);">⚠️ محاسبه تأخیر</label>
       <input type="checkbox" id="setLateEnabled">
     </div>
     <div class="settings-row">
-      <label>حالت تاریک</label>
+      <label>🌙 حالت تاریک</label>
       <input type="checkbox" id="setDarkMode">
     </div>
     <div class="settings-row">
-      <label>فعال‌سازی قفل PIN</label>
+      <label>🔒 قفل PIN</label>
       <input type="checkbox" id="setPinEnabled">
     </div>
-    <div style="margin-top:12px;">
-      <label style="font-size:12px; color:var(--muted);">تغییر PIN (۴ رقم)</label>
-      <input type="password" id="setPinValue" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; letter-spacing:8px; font-size:20px;">
+    <div style="margin-top:14px;">
+      <label style="font-size:12px; color:var(--muted); font-weight:600;">تغییر PIN (۴ رقم)</label>
+      <input type="password" id="setPinValue" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; letter-spacing:10px; font-size:22px; font-weight:bold;">
     </div>
     <div class="modal-actions">
-      <button class="primary" onclick="saveSettings()">💾 ذخیره</button>
+      <button class="success" onclick="saveSettings()">💾 ذخیره</button>
       <button class="ghost" onclick="document.getElementById('settingsModal').classList.remove('active')">انصراف</button>
     </div>
   </div>
 </div>
 
+<!-- ============ Header ============ -->
 <div class="header-actions">
-  <button class="ghost" onclick="openSettings()">⚙️ تنظیمات</button>
-  <button class="ghost" onclick="logout()">🚪 خروج</button>
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    تردد پرسنل
+  </div>
+  <div style="display:flex; gap:6px;">
+    <button class="ghost" onclick="openSettings()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button class="ghost" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
 </div>
 
+<!-- ============ Tabs ============ -->
 <div class="tabs">
-  <div class="tab active" data-tab="attendance">ثبت تردد</div>
-  <div class="tab" data-tab="dashboard">داشبورد</div>
-  <div class="tab" data-tab="calendar">تقویم</div>
-  <div class="tab" data-tab="employees">پرسنل</div>
-  <div class="tab" data-tab="branches">شعبه‌ها</div>
-  <div class="tab" data-tab="reports">گزارش‌ها</div>
+  <div class="tab active" data-tab="attendance">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    ثبت تردد
+  </div>
+  <div class="tab" data-tab="dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    داشبورد
+  </div>
+  <div class="tab" data-tab="calendar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    تقویم
+  </div>
+  <div class="tab" data-tab="employees">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    پرسنل
+  </div>
+  <div class="tab" data-tab="branches">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 7v14"/><path d="M21 7v14"/><path d="M6 7h12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+    شعبه‌ها
+  </div>
+  <div class="tab" data-tab="reports">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    گزارش‌ها
+  </div>
 </div>
 
+<!-- ============ Attendance Section ============ -->
 <div class="section active" id="sec-attendance">
-  <div class="card">
-    <h2>⏰ ثبت ورود / خروج / مرخصی</h2>
+  <div class="clock-container">
     <div class="date-display" id="todayDate">---</div>
     <div class="time-display" id="liveClock">--:--:--</div>
-    <input type="text" id="empSearchInput" class="search-input" placeholder="🔍 جستجوی پرسنل..." style="margin-bottom:4px;">
+  </div>
+
+  <div class="card">
+    <h2>ثبت ورود / خروج / مرخصی</h2>
+    <input type="text" id="empSearchInput" class="search-input" placeholder="🔍 جستجوی سریع پرسنل...">
     <select id="empSelect"><option value="">انتخاب پرسنل...</option></select>
     <select id="branchSelect"><option value="">انتخاب شعبه...</option></select>
-    <button id="btnCheckIn">✅ ثبت ورود</button>
-    <button id="btnCheckOut" class="danger">🚪 ثبت خروج</button>
-    <button id="btnLeave" class="warning">🌴 ثبت مرخصی (امروز)</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+      <button id="btnCheckIn" class="success" style="grid-column:span 2;">✅ ثبت ورود</button>
+      <button id="btnCheckOut" class="danger">🚪 ثبت خروج</button>
+      <button id="btnLeave" class="warning">🌴 مرخصی</button>
+    </div>
   </div>
+
   <div class="card">
-    <h2>📋 سوابق امروز (همه پرسنل)</h2>
-    <select id="todayBranchFilter" style="background:var(--record-bg); border-color:var(--input-border); font-size:13px;">
+    <h2>سوابق امروز</h2>
+    <select id="todayBranchFilter" style="background:var(--card-hover); border-color:var(--border); font-size:13px; margin-bottom:8px;">
       <option value="all">🏢 همه شعبه‌ها</option>
     </select>
     <div id="todayRecords"><div class="empty">در حال بارگذاری...</div></div>
@@ -298,6 +1094,7 @@
   </div>
 </div>
 
+<!-- ============ Dashboard Section ============ -->
 <div class="section" id="sec-dashboard">
   <div class="card">
     <h2>📊 داشبورد آماری</h2>
@@ -333,18 +1130,20 @@
         <div class="sub">نفر</div>
       </div>
     </div>
-    <button class="primary" onclick="loadDashboard()" style="margin-top:8px;">🔄 به‌روزرسانی</button>
+    <button class="primary" onclick="loadDashboard()">🔄 به‌روزرسانی</button>
   </div>
+
   <div class="card">
-    <h2>🏆 برترین‌های ماه (بیشترین کارکرد)</h2>
+    <h2>🏆 برترین‌های ماه</h2>
     <div id="dashTopList"><div class="empty">در حال بارگذاری...</div></div>
   </div>
 </div>
 
+<!-- ============ Calendar Section ============ -->
 <div class="section" id="sec-calendar">
   <div class="card">
-    <h2>📅 ویرایش تقویم ماهانه</h2>
-    <select id="calEmpSelect" style="margin-bottom:6px;"><option value="">انتخاب پرسنل...</option></select>
+    <h2>📅 تقویم ماهانه</h2>
+    <select id="calEmpSelect" style="margin-bottom:8px;"><option value="">انتخاب پرسنل...</option></select>
     <div style="display:flex; gap:6px;">
       <select id="calMonthSelect" style="flex:2;">
         <option value="1">فروردین</option>
@@ -365,18 +1164,19 @@
     <div class="cal-summary" id="calSummary" style="margin-top:12px; display:none;">
       <div class="box"><strong id="calSummaryWork">۰</strong>کارکرد (ساعت)</div>
       <div class="box"><strong id="calSummaryLeave">۰</strong>مرخصی (روز)</div>
-      <div class="box"><strong id="calSummaryDays">۰</strong>روز ثبت‌شده</div>
+      <div class="box"><strong id="calSummaryDays">۰</strong>روز ثبت</div>
     </div>
     <div id="calendarList" style="margin-top:12px;"><div class="empty">ابتدا پرسنل را انتخاب کنید</div></div>
   </div>
 </div>
 
+<!-- ============ Employees Section ============ -->
 <div class="section" id="sec-employees">
   <div class="card">
-    <h2>👤 افزودن پرسنل</h2>
+    <h2>➕ افزودن پرسنل جدید</h2>
     <input type="text" id="newEmpName" placeholder="نام و نام خانوادگی">
     <select id="newEmpBranch"><option value="">شعبه (اختیاری)...</option></select>
-    <button id="btnAddEmp" class="primary">➕ افزودن</button>
+    <button id="btnAddEmp" class="success">➕ افزودن پرسنل</button>
   </div>
   <div class="card">
     <h2>📃 لیست پرسنل</h2>
@@ -384,11 +1184,12 @@
   </div>
 </div>
 
+<!-- ============ Branches Section ============ -->
 <div class="section" id="sec-branches">
   <div class="card">
-    <h2>🏢 افزودن شعبه</h2>
+    <h2>➕ افزودن شعبه جدید</h2>
     <input type="text" id="newBranchName" placeholder="نام شعبه">
-    <button id="btnAddBranch" class="primary">➕ افزودن</button>
+    <button id="btnAddBranch" class="success">➕ افزودن شعبه</button>
   </div>
   <div class="card">
     <h2>📃 لیست شعبه‌ها</h2>
@@ -396,35 +1197,53 @@
   </div>
 </div>
 
+<!-- ============ Reports Section ============ -->
 <div class="section" id="sec-reports">
   <div class="card">
-    <h2>📊 گزارش ماهانه و سفارشی</h2>
+    <h2>📊 گزارش‌ها</h2>
     
-    <div style="display:flex; gap:6px; margin-bottom:8px;">
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
       <div style="flex:1;">
-        <label style="font-size:12px; color:var(--muted);">از تاریخ (شمسی)</label>
-        <input type="text" id="reportStartDate" class="search-input" style="margin:0; direction:ltr; text-align:center; font-family:monospace; font-size:15px;" readonly>
+        <label style="font-size:11px; color:var(--muted); font-weight:600;">از تاریخ</label>
+        <input type="text" id="reportStartDate" class="search-input" style="margin:4px 0 0; direction:ltr; text-align:center; font-family:monospace; font-size:14px; font-weight:600;" readonly>
       </div>
       <div style="flex:1;">
-        <label style="font-size:12px; color:var(--muted);">تا تاریخ (شمسی)</label>
-        <input type="text" id="reportEndDate" class="search-input" style="margin:0; direction:ltr; text-align:center; font-family:monospace; font-size:15px;" readonly>
+        <label style="font-size:11px; color:var(--muted); font-weight:600;">تا تاریخ</label>
+        <input type="text" id="reportEndDate" class="search-input" style="margin:4px 0 0; direction:ltr; text-align:center; font-family:monospace; font-size:14px; font-weight:600;" readonly>
       </div>
     </div>
 
-    <select id="reportEmpFilter" style="margin-top:6px; background:var(--record-bg); border-color:var(--input-border); font-weight:bold;">
+    <select id="reportEmpFilter" style="background:var(--card-hover); border-color:var(--border); font-weight:600;">
       <option value="all">👥 نمایش همه پرسنل</option>
     </select>
 
-    <input type="text" id="reportSearch" class="search-input" placeholder="🔍 جستجو در نتایج..." style="margin-top:6px;">
+    <input type="text" id="reportSearch" class="search-input" placeholder="🔍 جستجو در نتایج...">
 
-    <div style="display:flex; gap:6px; margin-top:8px;">
-      <button id="btnExportExcel" class="primary" style="background:#0f766e; margin:0;">📥 اکسل (تک‌نفر)</button>
-      <button onclick="exportAllEmployees()" class="primary" style="background:#7c3aed; margin:0;">📦 اکسل (همه)</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+      <button id="btnExportExcel" class="primary">📥 اکسل (تک‌نفر)</button>
+      <button onclick="exportAllEmployees()" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">📦 اکسل (همه)</button>
     </div>
 
-    <div id="reportsList" style="margin-top:12px;"><div class="empty">در حال بارگذاری...</div></div>
-    <div class="total-box">جمع کل (بر اساس فیلتر): <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
+    <div id="reportsList" style="margin-top:14px;"><div class="empty">در حال بارگذاری...</div></div>
+    <div class="total-box">جمع کل: <strong id="monthlyTotalH">۰</strong> ساعت و <strong id="monthlyTotalM">۰</strong> دقیقه</div>
   </div>
+</div>
+
+<!-- ============ FAB ============ -->
+<div class="fab-container" id="fabContainer">
+  <div class="fab-menu">
+    <div class="fab-item" onclick="quickCheckIn()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      ثبت ورود سریع
+    </div>
+    <div class="fab-item" onclick="document.querySelector('[data-tab=reports]').click();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      مشاهده گزارش
+    </div>
+  </div>
+  <button class="fab" onclick="document.getElementById('fabContainer').classList.toggle('open')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 </div>
 
 <script>
@@ -448,22 +1267,25 @@ const DEFAULT_SETTINGS = { startTime: '08:00', endTime: '17:00', lateEnabled: fa
 
 const app = { ready:false, db:null, branches:[], employees:[], settings:{...DEFAULT_SETTINGS}, channel:null };
 
-// متغیرهای سراسری برای بازه گزارش
 window._reportStartDate = null;
 window._reportEndDate = null;
 
 // ---------- Toast ----------
-function toast(msg, type='info', duration=2800) {
+function toast(msg, type='info', duration=3000) {
   const c = document.getElementById('toastContainer');
   if (!c) return;
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.textContent = msg;
   c.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+  setTimeout(() => { 
+    el.style.opacity = '0'; 
+    el.style.transform = 'translateY(-10px)';
+    el.style.transition = 'all .3s'; 
+    setTimeout(() => el.remove(), 300); 
+  }, duration);
 }
 
-// تبدیل اعداد فارسی و عربی به انگلیسی
 function toEnNum(str) {
   if (!str) return '';
   return String(str)
@@ -472,7 +1294,6 @@ function toEnNum(str) {
     .trim();
 }
 
-// ---------- توابع کمکی زمان و تاریخ ----------
 function getLocalDateStr(d = new Date()) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -485,6 +1306,7 @@ function getJalaliParts(date) {
   const parts = jStr.split('/');
   return { year: parseInt(parts[0]), month: parseInt(parts[1]), day: parseInt(parts[2]) };
 }
+
 function getGregorianFromJalali(jy, jm, jd) {
   let baseYear = jy + 621;
   let startOfYear = null;
@@ -502,17 +1324,18 @@ function getGregorianFromJalali(jy, jm, jd) {
   result.setUTCDate(result.getUTCDate() + monthDays + (jd - 1));
   return result;
 }
+
 function getJalaliMonthDays(jy, jm) {
   const start = getGregorianFromJalali(jy, jm, 1);
   const nextMonth = jm === 12 ? getGregorianFromJalali(jy + 1, 1, 1) : getGregorianFromJalali(jy, jm + 1, 1);
   return Math.round((nextMonth - start) / 86400000);
 }
+
 function getJalaliMonthRangeGregorian(jy, jm) {
   const days = getJalaliMonthDays(jy, jm);
   return { start: getGregorianFromJalali(jy, jm, 1), end: getGregorianFromJalali(jy, jm, days) };
 }
 
-// ---------- نمایش ----------
 function faNum(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
 function toJalali(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'long'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
 function toJalaliShort(date){ try { return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(date); } catch(e){ return date.toLocaleDateString(); } }
@@ -528,19 +1351,22 @@ function minutesBetween(startStr, endStr){
 }
 
 function minutesToHM(m){ return { h: Math.floor(m/60), m: Math.round(m%60) }; }
+
 function getTimeForInput(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
+
 function setBoot(msg, isError){
   const el = document.getElementById('bootMsg');
   if (!el) return;
   el.textContent = msg;
-  el.style.background = isError ? '#fee2e2' : '#d1fae5';
+  el.style.background = isError ? 'linear-gradient(135deg,#fee2e2,#fecaca)' : 'linear-gradient(135deg,#d1fae5,#a7f3d0)';
   el.style.color = isError ? '#991b1b' : '#065f46';
   if (!isError) setTimeout(() => { el.style.display = 'none'; }, 2500);
 }
+
 function updateClock(){
   const now = new Date();
   const c = document.getElementById('liveClock');
@@ -551,7 +1377,6 @@ function updateClock(){
 setInterval(updateClock, 1000);
 updateClock();
 
-// ---------- مدیریت آفلاین ----------
 function updateOnlineStatus() {
   const banner = document.getElementById('offlineBanner');
   if (!banner) return;
@@ -580,12 +1405,11 @@ async function syncOfflineQueue() {
 
   if (successCount > 0) {
     localStorage.setItem(LS_KEYS.offlineQueue, '[]');
-    toast(`✅ ${successCount} رکورد آفلاین به سرور ارسال شد.`, 'success', 4000);
+    toast(`✅ ${successCount} رکورد آفلاین ارسال شد.`, 'success', 4000);
     loadTodayRecords();
   }
 }
 
-// ---------- تشخیص تأخیر ----------
 function isLate(checkInIso, workDate) {
   if (!app.settings.lateEnabled) return false; 
   if (!checkInIso || !app.settings.startTime) return false;
@@ -612,7 +1436,6 @@ function getLateMinutes(checkInIso) {
   return Math.max(0, actualMinutes - startMinutes);
 }
 
-// ---------- تنظیمات ----------
 function loadSettings() {
   try {
     const s = localStorage.getItem(LS_KEYS.settings);
@@ -627,11 +1450,14 @@ function loadSettings() {
     app.settings = { ...DEFAULT_SETTINGS };
   }
 }
+
 function saveSettingsToLS() { localStorage.setItem(LS_KEYS.settings, JSON.stringify(app.settings)); }
+
 function applyTheme() {
   const dark = localStorage.getItem(LS_KEYS.theme) === 'dark';
   document.body.classList.toggle('dark', dark);
 }
+
 function openSettings() {
   document.getElementById('setStartTime').value = app.settings.startTime;
   document.getElementById('setEndTime').value = app.settings.endTime;
@@ -641,6 +1467,7 @@ function openSettings() {
   document.getElementById('setPinValue').value = '';
   document.getElementById('settingsModal').classList.add('active');
 }
+
 function saveSettings() {
   const st = document.getElementById('setStartTime').value || '08:00';
   const en = document.getElementById('setEndTime').value || '17:00';
@@ -720,12 +1547,11 @@ document.querySelectorAll('.pin-keys button').forEach(btn => {
 });
 
 function logout() {
-  if (!confirm('از سیستم خارج می‌شوید؟ (برای ورود مجدد به PIN نیاز دارید)')) return;
+  if (!confirm('از سیستم خارج می‌شوید؟')) return;
   localStorage.removeItem(LS_KEYS.auth);
   location.reload();
 }
 
-// ---------- Tabs ----------
 function setupTabs(){
   const tabs = document.querySelectorAll('.tab');
   const secs = document.querySelectorAll('.section');
@@ -747,22 +1573,18 @@ function setupTabs(){
   });
 }
 
-// ---------- Init ----------
 async function initApp(){
   if (typeof supabase === 'undefined' || !supabase.createClient) {
     setBoot('⚠️ کتابخانه Supabase لود نشد.', true); return;
   }
-  if (typeof XLSX === 'undefined') {
-    setBoot('⚠️ کتابخانه اکسل لود نشد. دکمه دانلود از روش CSV استفاده می‌کند.', true);
-  }
   try {
     app.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   } catch(e){
-    setBoot('⚠️ خطا اتصال Supabase: ' + e.message, true); return;
+    setBoot('⚠️ خطا اتصال: ' + e.message, true); return;
   }
 
   if (!navigator.onLine) {
-    setBoot('📴 شما آفلاین هستید. ورود در گوشی ذخیره می‌شود.', true);
+    setBoot('📴 شما آفلاین هستید.', true);
   } else {
     try {
       await loadBranches();
@@ -779,33 +1601,23 @@ async function initApp(){
     }
   }
   
-  // ========== راه‌اندازی تقویم شمسی با اعداد انگلیسی ==========
   if (typeof jQuery !== 'undefined' && jQuery.fn.persianDatepicker) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    // تنظیمات مشترک برای هر دو تاریخ‌پیکر
     const commonOptions = {
       format: 'YYYY/MM/DD',
       initialValue: false,
       autoClose: true,
-      calendar: {
-        persian: {
-          locale: 'en'   // ← اعداد انگلیسی
-        }
-      },
+      calendar: { persian: { locale: 'en' } },
       formatter: function(unix) {
-        // همیشه اعداد لاتین برمی‌گرداند
         const pd = new persianDate(unix);
         return pd.toLocale('en').format('YYYY/MM/DD');
       },
-      onSelect: function(unix) {
-        // این تابع در هر دو اینستنس جداگانه override می‌شود
-      }
+      onSelect: function(unix) {}
     };
 
-    // تاریخ شروع
     $('#reportStartDate').persianDatepicker({
       ...commonOptions,
       onSelect: function(unix) {
@@ -816,7 +1628,6 @@ async function initApp(){
       }
     });
 
-    // تاریخ پایان
     $('#reportEndDate').persianDatepicker({
       ...commonOptions,
       onSelect: function(unix) {
@@ -827,29 +1638,21 @@ async function initApp(){
       }
     });
 
-    // مقداردهی اولیه با تاریخ‌های میلادی جاری
     const startPd = new persianDate(startOfMonth);
     const endPd = new persianDate(endOfMonth);
     
     $('#reportStartDate').val(startPd.toLocale('en').format('YYYY/MM/DD'));
     $('#reportEndDate').val(endPd.toLocale('en').format('YYYY/MM/DD'));
 
-    // ست کردن متغیرهای سراسری
     window._reportStartDate = startOfMonth;
     window._reportEndDate = endOfMonth;
 
-    // ست کردن تاریخ اولیه در خود پیکر (برای اینکه انتخاب‌شده نشان داده شود)
     try {
       const startPicker = $('#reportStartDate').data('datepicker');
       const endPicker = $('#reportEndDate').data('datepicker');
       if (startPicker) startPicker.setDate(startOfMonth.getTime());
       if (endPicker) endPicker.setDate(endOfMonth.getTime());
     } catch(e) {}
-  } else {
-    console.warn('persianDatepicker در دسترس نیست');
-    const now = new Date();
-    window._reportStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    window._reportEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   }
 
   setupRealtime();
@@ -893,6 +1696,7 @@ async function getEmpNameMap(ids){
   const { data } = await app.db.from('employees').select('id,name').in('id', clean);
   return new Map((data || []).map(e => [e.id, e.name]));
 }
+
 async function getBranchNameMap(ids){
   const clean = [...new Set(ids.filter(x => x !== null && x !== undefined))];
   if (!clean.length || !app.db) return new Map();
@@ -900,13 +1704,14 @@ async function getBranchNameMap(ids){
   return new Map((data || []).map(b => [b.id, b.name]));
 }
 
-// ---------- تقویم ----------
+// ---------- Calendar ----------
 function fillCalEmpSelect() {
   const sel = document.getElementById('calEmpSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' +
     app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
 }
+
 function initCalendarTab() {
   const yearSelect = document.getElementById('calYearSelect');
   if (!yearSelect.options.length) {
@@ -920,6 +1725,7 @@ function initCalendarTab() {
   document.getElementById('calMonthSelect').value = getJalaliParts(new Date()).month;
   loadCalendar();
 }
+
 async function loadCalendar() {
   const el = document.getElementById('calendarList');
   const summaryEl = document.getElementById('calSummary');
@@ -928,9 +1734,9 @@ async function loadCalendar() {
   const jy = parseInt(document.getElementById('calYearSelect').value);
 
   if (!empId) { el.innerHTML = '<div class="empty">ابتدا پرسنل را انتخاب کنید</div>'; summaryEl.style.display = 'none'; return; }
-  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده تقویم به اینترنت نیاز است.</div>'; summaryEl.style.display = 'none'; return; }
+  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:var(--danger);">برای مشاهده تقویم به اینترنت نیاز است.</div>'; summaryEl.style.display = 'none'; return; }
   
-  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+  el.innerHTML = '<div class="empty"><span class="spinner" style="border-top-color:var(--primary);"></span> در حال بارگذاری...</div>';
 
   const emp = app.employees.find(e => e.id.toString() === empId.toString());
   const daysCount = getJalaliMonthDays(jy, jm);
@@ -940,7 +1746,7 @@ async function loadCalendar() {
   const { data: attData, error } = await app.db.from('attendance')
     .select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr);
 
-  if (error) { el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + error.message + '</div>'; summaryEl.style.display = 'none'; return; }
+  if (error) { el.innerHTML = '<div class="empty" style="color:var(--danger);">خطا: ' + error.message + '</div>'; summaryEl.style.display = 'none'; return; }
 
   const recordsByDate = {};
   (attData || []).forEach(r => { if (!recordsByDate[r.work_date]) recordsByDate[r.work_date] = r; });
@@ -954,7 +1760,7 @@ async function loadCalendar() {
   document.getElementById('calSummaryWork').textContent = faNum(hm.h);
   document.getElementById('calSummaryLeave').textContent = faNum(leaveDays);
   document.getElementById('calSummaryDays').textContent = faNum(presentDays + leaveDays);
-  summaryEl.style.display = 'flex';
+  summaryEl.style.display = 'grid';
 
   const todayStr = getLocalDateStr();
   let html = '';
@@ -969,28 +1775,30 @@ async function loadCalendar() {
 
     if (rec) {
       if (rec.status === 'leave') {
-        statusHtml = '<span class="status" style="color:#d97706; font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave';
+        statusHtml = '<span class="status" style="color:var(--warning); font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave';
       } else {
         const inT = rec.check_in ? timeFa(rec.check_in) : '---';
         const outT = rec.check_out ? timeFa(rec.check_out) : '---';
         const late = rec.check_in && isLate(rec.check_in) ? ' <span style="color:#f97316;">(تأخیر)</span>' : '';
-        statusHtml = `<span class="status" style="color:#065f46;">ورود: ${inT} | خروج: ${outT}${late}</span>`; rowClass = 'status-present';
+        statusHtml = `<span class="status" style="color:var(--success); font-weight:600;">ورود: ${inT} | خروج: ${outT}${late}</span>`; rowClass = 'status-present';
       }
     }
     const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     const isToday = gDateStr === todayStr;
     html += `<div class="calendar-row ${rowClass} ${isToday ? 'today' : ''}">
       <div class="day-info">
-        <strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:#3b82f6; font-size:11px;">(امروز)</span>' : ''}</strong>
+        <strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:var(--primary); font-size:11px;">(امروز)</span>' : ''}</strong>
         ${statusHtml}
       </div>
-      <button class="btn-icon" style="padding:6px 10px;" onclick="openCalendarEdit('${rec ? rec.id : ''}', '${gDateStr}', '${empId}', '${rec ? rec.check_in : ''}', '${rec ? rec.check_out : ''}', '${rec ? rec.status : ''}', '${dayName} ${dateStr}')">✏️</button>
+      <button class="btn-icon edit" onclick="openCalendarEdit('${rec ? rec.id : ''}', '${gDateStr}', '${empId}', '${rec ? rec.check_in : ''}', '${rec ? rec.check_out : ''}', '${rec ? rec.status : ''}', '${dayName} ${dateStr}', '${rec ? (rec.branch_id || '') : ''}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
     </div>`;
   }
   el.innerHTML = html;
 }
 
-window.openCalendarEdit = function(recId, gDateStr, empId, checkInIso, checkOutIso, status, title) {
+window.openCalendarEdit = function(recId, gDateStr, empId, checkInIso, checkOutIso, status, title, branchIdFromRec) {
   document.getElementById('calRecId').value = recId || '';
   document.getElementById('calWorkDate').value = gDateStr;
   document.getElementById('calEmpId').value = empId;
@@ -998,17 +1806,27 @@ window.openCalendarEdit = function(recId, gDateStr, empId, checkInIso, checkOutI
   document.getElementById('calCheckOut').value = getTimeForInput(checkOutIso);
   document.getElementById('calIsLeave').checked = (status === 'leave');
   document.getElementById('calModalTitle').textContent = 'ویرایش ' + title;
+
   const emp = app.employees.find(e => e.id.toString() === empId.toString());
-  document.getElementById('calBranchId').value = emp ? emp.branch_id : '';
+  const defaultBranchId = branchIdFromRec || (emp ? (emp.branch_id || '') : '');
+
+  const branchSel = document.getElementById('calBranchSelect');
+  branchSel.innerHTML = '<option value="">بدون شعبه</option>' +
+    app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  branchSel.value = defaultBranchId ? String(defaultBranchId) : '';
+
+  document.getElementById('calBranchId').value = branchSel.value;
+
   document.getElementById('calendarEditModal').classList.add('active');
 };
+
 window.closeCalendarModal = function() { document.getElementById('calendarEditModal').classList.remove('active'); };
 
 window.saveCalendarEdit = async function() {
   const recId = document.getElementById('calRecId').value;
   const workDate = document.getElementById('calWorkDate').value;
   const empId = document.getElementById('calEmpId').value;
-  const branchId = document.getElementById('calBranchId').value;
+  const branchId = document.getElementById('calBranchSelect').value || null;
   const isLeave = document.getElementById('calIsLeave').checked;
   const inVal = document.getElementById('calCheckIn').value;
   const outVal = document.getElementById('calCheckOut').value;
@@ -1027,31 +1845,41 @@ window.saveCalendarEdit = async function() {
 
   try {
     if (recId) {
-      const { error } = await app.db.from('attendance').update({ check_in: checkIn, check_out: checkOut, status }).eq('id', recId);
+      const { error } = await app.db.from('attendance').update({
+        check_in: checkIn,
+        check_out: checkOut,
+        status,
+        branch_id: branchId ? Number(branchId) : null
+      }).eq('id', recId);
       if (error) throw error;
     } else {
       const { error } = await app.db.from('attendance').insert({
-        employee_id: Number(empId), branch_id: branchId ? Number(branchId) : null,
-        work_date: workDate, check_in: checkIn, check_out: checkOut, status
+        employee_id: Number(empId),
+        branch_id: branchId ? Number(branchId) : null,
+        work_date: workDate,
+        check_in: checkIn,
+        check_out: checkOut,
+        status
       });
       if (error) throw error;
     }
     closeCalendarModal();
-    toast('ذخیره شد', 'success');
+    toast('✅ ذخیره شد', 'success');
     loadCalendar();
     if (workDate === getLocalDateStr()) loadTodayRecords();
+    if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   } catch (err) {
     toast('خطا: ' + err.message, 'error');
   }
 };
 
-// ---------- Edit / Delete ----------
 window.openEditModal = async function(id, checkInIso, checkOutIso) {
   document.getElementById('editRecId').value = id;
   document.getElementById('editCheckIn').value = getTimeForInput(checkInIso);
   document.getElementById('editCheckOut').value = getTimeForInput(checkOutIso);
   document.getElementById('editModal').classList.add('active');
 };
+
 window.closeEditModal = function() { document.getElementById('editModal').classList.remove('active'); };
 
 window.saveEditTime = async function() {
@@ -1074,7 +1902,7 @@ window.saveEditTime = async function() {
   if (error) return toast('خطا: ' + error.message, 'error');
 
   closeEditModal();
-  toast('ویرایش شد', 'success');
+  toast('✅ ویرایش شد', 'success');
   loadTodayRecords();
   if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
@@ -1085,13 +1913,12 @@ window.deleteRecord = async function(id){
   if (!confirm('آیا از حذف این رکورد مطمئن هستید؟')) return;
   const { error } = await app.db.from('attendance').delete().eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
-  toast('حذف شد', 'success');
+  toast('🗑️ حذف شد', 'success');
   loadTodayRecords();
   if (document.getElementById('sec-reports').classList.contains('active')) loadReports();
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 };
 
-// ---------- Branches / Employees (Soft Delete) ----------
 async function loadBranches(){
   if (!navigator.onLine) return;
   const { data, error } = await app.db.from('branches').select('*').is('deleted_at', null).order('id');
@@ -1099,6 +1926,7 @@ async function loadBranches(){
   app.branches = data || [];
   renderBranches(); fillBranchSelects(); fillTodayBranchFilter();
 }
+
 function fillBranchSelects(){
   const opts = '<option value="">انتخاب شعبه...</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const s1 = document.getElementById('branchSelect'), s2 = document.getElementById('newEmpBranch');
@@ -1108,24 +1936,27 @@ function fillBranchSelects(){
   const s3 = document.getElementById('editEmpBranch');
   if (s3) s3.innerHTML = '<option value="">بدون شعبه</option>' + app.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 }
+
 function fillTodayBranchFilter() {
   const sel = document.getElementById('todayBranchFilter');
   if (!sel) return;
   sel.innerHTML = '<option value="all">🏢 همه شعبه‌ها</option>' + app.branches.map(b => `<option value="${b.id}">🏢 ${b.name}</option>`).join('');
 }
+
 function renderBranches(){
   const el = document.getElementById('branchesList');
   if (!el) return;
   if (!app.branches.length){ el.innerHTML = '<div class="empty">شعبه‌ای تعریف نشده</div>'; return; }
   el.innerHTML = app.branches.map(b => `<div class="branch-item"><span>🏢 ${b.name}</span><button class="danger small" onclick="deleteBranch(${b.id})">غیرفعال</button></div>`).join('');
 }
+
 window.deleteBranch = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
-  if (!confirm('این شعبه غیرفعال شود؟ (سوابق تردد حفظ می‌شود)')) return;
+  if (!confirm('این شعبه غیرفعال شود؟ (سوابق حفظ می‌شود)')) return;
   const { error } = await app.db.from('branches').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadBranches(); await loadEmployees(); fillEmpSelect(); fillTodayBranchFilter();
-  toast('شعبه غیرفعال شد (سوابق حفظ شد)', 'success');
+  toast('شعبه غیرفعال شد', 'success');
 };
 
 async function loadEmployees(){
@@ -1137,6 +1968,7 @@ async function loadEmployees(){
   app.employees.forEach(e => { e._branchName = brMap.get(e.branch_id) || null; });
   renderEmployees();
 }
+
 function renderEmployees(){
   const el = document.getElementById('employeesList');
   if (!el) return;
@@ -1145,19 +1977,22 @@ function renderEmployees(){
     <div class="branch-item">
       <span>👤 ${e.name} ${e._branchName ? `<span class="chip">${e._branchName}</span>` : ''}</span>
       <div style="display:flex; gap:6px;">
-        <button class="btn-icon edit" onclick="openEmpEditModal(${e.id})">✏️ ویرایش</button>
+        <button class="btn-icon edit" onclick="openEmpEditModal(${e.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
         <button class="danger small" onclick="deleteEmployee(${e.id})">غیرفعال</button>
       </div>
     </div>
   `).join('');
 }
+
 window.deleteEmployee = async function(id){
   if (!navigator.onLine) return toast('برای غیرفعال‌سازی نیاز به اینترنت دارید', 'error');
-  if (!confirm('این پرسنل غیرفعال شود؟ (تمام سوابق تردد او حفظ می‌شود)')) return;
+  if (!confirm('این پرسنل غیرفعال شود؟ (سوابق حفظ می‌شود)')) return;
   const { error } = await app.db.from('employees').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) return toast('خطا: ' + error.message, 'error');
   await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
-  toast('پرسنل غیرفعال شد (سوابق حفظ شد)', 'success');
+  toast('پرسنل غیرفعال شد', 'success');
 };
 
 window.openEmpEditModal = function(id) {
@@ -1168,9 +2003,11 @@ window.openEmpEditModal = function(id) {
   document.getElementById('editEmpBranch').value = emp.branch_id || '';
   document.getElementById('empEditModal').classList.add('active');
 };
+
 window.closeEmpEditModal = function() {
   document.getElementById('empEditModal').classList.remove('active');
 };
+
 window.saveEmployeeEdit = async function() {
   const id = document.getElementById('editEmpId').value;
   const name = document.getElementById('editEmpName').value.trim();
@@ -1195,6 +2032,7 @@ function fillEmpSelect(){
   if (!sel) return;
   sel.innerHTML = '<option value="">انتخاب پرسنل...</option>' + app.employees.map(e => `<option value="${e.id}" data-branch="${e.branch_id || ''}">${e.name}</option>`).join('');
 }
+
 function fillReportFilter(){
   const sel = document.getElementById('reportEmpFilter');
   if (!sel) return;
@@ -1202,6 +2040,7 @@ function fillReportFilter(){
   sel.innerHTML = '<option value="all">👥 نمایش همه پرسنل</option>' + app.employees.map(e => `<option value="${e.id}">👤 ${e.name}</option>`).join('');
   if (cur && cur !== 'all') sel.value = cur;
 }
+
 function filterEmpSelectBySearch(query) {
   const sel = document.getElementById('empSelect');
   if (!sel) return;
@@ -1217,7 +2056,6 @@ function filterEmpSelectBySearch(query) {
   }
 }
 
-// ---------- Check In/Out/Leave ----------
 async function doCheckIn(){
   const empId = document.getElementById('empSelect').value;
   const branchId = document.getElementById('branchSelect').value;
@@ -1231,7 +2069,7 @@ async function doCheckIn(){
     const queue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
     queue.push(payload);
     localStorage.setItem(LS_KEYS.offlineQueue, JSON.stringify(queue));
-    toast('📴 اینترنت قطع است. ورود شما موقتاً در گوشی ذخیره شد.', 'warning', 4000);
+    toast('📴 ورود موقتاً ذخیره شد', 'warning', 4000);
     loadTodayRecords();
     return;
   }
@@ -1263,7 +2101,7 @@ async function doCheckOut(){
   try {
     const { data, error } = await app.db.from('attendance').select('id').eq('employee_id', Number(empId)).is('check_out', null).eq('status', 'present').order('check_in', { ascending:false }).limit(1);
     if (error) throw error;
-    if (!data || !data.length) return toast('رکورد ورود بازی پیدا نشد', 'error');
+    if (!data || !data.length) return toast('رکورد ورود باز پیدا نشد', 'error');
     const { error: ue } = await app.db.from('attendance').update({ check_out: new Date().toISOString() }).eq('id', data[0].id);
     if (ue) throw ue;
     localStorage.setItem(LS_KEYS.emp, empId);
@@ -1299,10 +2137,16 @@ async function doLeave(){
   } catch (err) { toast('خطا: ' + err.message, 'error'); }
 }
 
+function quickCheckIn() {
+  document.getElementById('fabContainer').classList.remove('open');
+  document.querySelector('[data-tab=attendance]').click();
+  setTimeout(() => document.getElementById('btnCheckIn')?.click(), 200);
+}
+
 async function loadTodayRecords(){
   const el = document.getElementById('todayRecords');
   if (!el) return;
-  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+  el.innerHTML = '<div class="empty"><span class="spinner" style="border-top-color:var(--primary);"></span> در حال بارگذاری...</div>';
   
   const offlineQueue = JSON.parse(localStorage.getItem(LS_KEYS.offlineQueue) || '[]');
 
@@ -1322,7 +2166,7 @@ async function loadTodayRecords(){
     const allData = [...offlineQueue, ...attData];
     
     if (!allData.length){ 
-      el.innerHTML = '<div class="empty">امروز ترددی ثبت نشده</div>'; 
+      el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>امروز ترددی ثبت نشده</div>'; 
       document.getElementById('dailyTotal').textContent = '۰'; 
       return; 
     }
@@ -1335,10 +2179,10 @@ async function loadTodayRecords(){
     let total = 0;
     el.innerHTML = allData.map(r => {
       const isOffline = !r.id;
-      const offlineBadge = isOffline ? '<span class="chip" style="background:#fef3c7; color:#92400e;">در انتظار ارسال</span>' : '';
+      const offlineBadge = isOffline ? '<span class="chip" style="background:rgba(245,158,11,0.15); color:var(--warning);">در انتظار ارسال</span>' : '';
 
       if (r.status === 'leave') {
-        return `<div class="record-item leave"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی تمام روز</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}</div></div>`;
+        return `<div class="record-item leave"><div class="record-content"><strong>${empMap.get(r.employee_id) || '---'}</strong><span class="chip">${brMap.get(r.branch_id) || '---'}</span>${offlineBadge}<div class="meta" style="color:var(--warning); font-weight:bold;">🌴 مرخصی تمام روز</div></div><div class="action-btns">${!isOffline ? `<button class="btn-icon del" onclick="deleteRecord(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}</div></div>`;
       }
       
       const inT = r.check_in ? timeFa(r.check_in) : '---';
@@ -1351,35 +2195,32 @@ async function loadTodayRecords(){
           <strong>${empMap.get(r.employee_id) || '---'}</strong>
           <span class="chip">${brMap.get(r.branch_id) || '---'}</span>
           ${offlineBadge}
-          <div class="meta">ورود: ${inT}${late} | خروج: ${outT}</div>
+          <div class="meta">⏱️ ورود: ${inT}${late} | خروج: ${outT}</div>
         </div>
         <div class="action-btns">
-          ${!isOffline ? `<button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button>` : ''}
+          ${!isOffline ? `<button class="btn-icon edit" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon del" onclick="deleteRecord(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
         </div>
       </div>`;
     }).join('');
     document.getElementById('dailyTotal').textContent = faNum(total);
   } catch (err) {
     console.error(err);
-    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
+    el.innerHTML = '<div class="empty" style="color:var(--danger);">خطا: ' + err.message + '</div>';
   }
 }
 
-// ---------- Reports (نسخه اصلاح‌شده) ----------
 async function loadReports(){
   const el = document.getElementById('reportsList');
   if (!el) return;
-  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:#ef4444;">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
-  el.innerHTML = '<div class="empty">در حال بارگذاری...</div>';
+  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:var(--danger);">برای مشاهده گزارش‌ها به اینترنت نیاز است.</div>'; return; }
+  el.innerHTML = '<div class="empty"><span class="spinner" style="border-top-color:var(--primary);"></span> در حال بارگذاری...</div>';
 
   const filterEmpId = document.getElementById('reportEmpFilter').value || 'all';
   const searchQ = (document.getElementById('reportSearch')?.value || '').trim().toLowerCase();
 
-  // استفاده از متغیرهای سراسری
   let startDate = window._reportStartDate;
   let endDate = window._reportEndDate;
 
-  // اگر متغیرها مشکل داشتند، از مقدار اینپوت پارس کن
   if (!startDate || !(startDate instanceof Date) || isNaN(startDate.getTime())) {
     const val = toEnNum(document.getElementById('reportStartDate').value);
     if (val && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(val)) {
@@ -1401,7 +2242,6 @@ async function loadReports(){
     }
   }
 
-  // اگر بازه معکوس بود، اصلاح کن
   if (startDate.getTime() > endDate.getTime()) {
     const tmp = startDate;
     startDate = endDate;
@@ -1411,16 +2251,12 @@ async function loadReports(){
   const startStr = getLocalDateStr(startDate);
   const endStr = getLocalDateStr(endDate);
 
-  console.log('[Reports] بازه میلادی:', startStr, '→', endStr);
-
   let query = app.db.from('attendance').select('*').gte('work_date', startStr).lte('work_date', endStr).order('id', { ascending:false });
   if (filterEmpId !== 'all') query = query.eq('employee_id', Number(filterEmpId));
 
   try {
     const { data: attData, error } = await query;
     if (error) throw error;
-
-    console.log('[Reports] تعداد رکورد دریافتی:', (attData || []).length);
 
     const [empMap, brMap] = await Promise.all([
       getEmpNameMap((attData||[]).map(r => r.employee_id)),
@@ -1453,20 +2289,20 @@ async function loadReports(){
       const hm = minutesToHM(total);
       const recHtml = records.length ? records.map(r => {
         if (r.status === 'leave') {
-          return `<div class="record-item leave"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:#d97706; font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
+          return `<div class="record-item leave"><div class="record-content"><div class="meta">📅 ${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta" style="color:var(--warning); font-weight:bold;">🌴 مرخصی</div></div><div class="action-btns"><button class="btn-icon del" onclick="deleteRecord(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button></div></div>`;
         }
-        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">ورود: ${r.check_in ? timeFa(r.check_in) : '---'} | خروج: ${r.check_out ? timeFa(r.check_out) : '--- (باز)'}</div>${r.check_out ? `<div class="meta">مدت: ${faNum(minutesBetween(r.check_in, r.check_out))} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')">✏️</button><button class="btn-icon del" onclick="deleteRecord(${r.id})">✖</button></div></div>`;
-      }).join('') : '<div class="empty" style="padding:10px;">رکوردی ندارد</div>';
+        return `<div class="record-item ${r.check_out ? 'out' : ''}"><div class="record-content"><div class="meta">📅 ${toJalaliShort(new Date(r.work_date))} • ${brMap.get(r.branch_id) || '---'}</div><div class="meta">⏱️ ورود: ${r.check_in ? timeFa(r.check_in) : '---'} | خروج: ${r.check_out ? timeFa(r.check_out) : '--- (باز)'}</div>${r.check_out ? `<div class="meta">⏳ مدت: ${faNum(minutesBetween(r.check_in, r.check_out))} دقیقه</div>` : ''}</div><div class="action-btns"><button class="btn-icon edit" onclick="openEditModal(${r.id}, '${r.check_in||''}', '${r.check_out||''}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon del" onclick="deleteRecord(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button></div></div>`;
+      }).join('') : '<div class="empty" style="padding:16px;">رکوردی ندارد</div>';
 
-      const lateStat = app.settings.lateEnabled ? `<span>⚠️ تأخیر: ${faNum(lateCount)}</span>` : '';
+      const lateStat = app.settings.lateEnabled ? `<div class="stat-item">⚠️ <strong>${faNum(lateCount)}</strong> تأخیر</div>` : '';
 
       html.push(`<div class="employee-card">
         <div class="employee-header"><strong>👤 ${emp.name}</strong><span class="chip">${emp._branchName || '---'}</span></div>
         <div class="stats">
-          <span>📅 ماه: ${faNum(hm.h)}س ${faNum(hm.m)}د</span>
-          <span>🌴 مرخصی: ${faNum(leaves)} روز</span>
+          <div class="stat-item">📅 <strong>${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>
+          <div class="stat-item">🌴 <strong>${faNum(leaves)}</strong> مرخصی</div>
           ${lateStat}
-          <span>📄 تعداد: ${faNum(records.length)}</span>
+          <div class="stat-item">📄 <strong>${faNum(records.length)}</strong> رکورد</div>
         </div>
         <details><summary>مشاهده سوابق</summary>${recHtml}</details>
       </div>`);
@@ -1477,11 +2313,10 @@ async function loadReports(){
     document.getElementById('monthlyTotalM').textContent = faNum(g.m);
   } catch (err) {
     console.error('[Reports] خطا:', err);
-    el.innerHTML = '<div class="empty" style="color:#ef4444;">خطا: ' + err.message + '</div>';
+    el.innerHTML = '<div class="empty" style="color:var(--danger);">خطا: ' + err.message + '</div>';
   }
 }
 
-// ---------- Dashboard ----------
 async function loadDashboard(){
   if (!navigator.onLine) { toast('برای مشاهده داشبورد نیاز به اینترنت دارید', 'error'); return; }
   try {
@@ -1535,7 +2370,7 @@ async function loadDashboard(){
         const emp = app.employees.find(e => e.id === empId);
         const hm = minutesToHM(mins);
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
-        return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong>${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
+        return `<div class="branch-item"><span>${medal} ${emp?.name || '---'}</span><strong style="color:var(--primary);">${faNum(hm.h)}س ${faNum(hm.m)}د</strong></div>`;
       }).join('');
     }
   } catch (err) {
@@ -1543,7 +2378,6 @@ async function loadDashboard(){
   }
 }
 
-// ---------- Export ----------
 window.exportToExcel = async function() {
   if (!navigator.onLine) return toast('برای دانلود نیاز به اینترنت دارید', 'error');
   const filterEmpId = document.getElementById('reportEmpFilter').value;
@@ -1722,7 +2556,6 @@ function triggerDownload(blob, filename) {
   }
 }
 
-// ---------- Wire up ----------
 app.loadReports = loadReports;
 app.renderEmployees = renderEmployees;
 app.renderBranches = renderBranches;
@@ -1756,6 +2589,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('calYearSelect')?.addEventListener('change', loadCalendar);
   document.getElementById('empSearchInput')?.addEventListener('input', (e) => filterEmpSelectBySearch(e.target.value));
 
+  document.getElementById('calBranchSelect')?.addEventListener('change', (e) => {
+    document.getElementById('calBranchId').value = e.target.value;
+  });
+
   document.getElementById('btnAddBranch')?.addEventListener('click', async () => {
     if (!navigator.onLine) return toast('نیاز به اینترنت دارید', 'error');
     const name = document.getElementById('newBranchName').value.trim();
@@ -1765,7 +2602,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (error) throw error;
       document.getElementById('newBranchName').value = '';
       await loadBranches();
-      toast('شعبه اضافه شد', 'success');
+      toast('✅ شعبه اضافه شد', 'success');
     } catch (err) { toast('خطا: ' + err.message, 'error'); }
   });
 
@@ -1779,7 +2616,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (error) throw error;
       document.getElementById('newEmpName').value = '';
       await loadEmployees(); fillEmpSelect(); fillReportFilter(); fillCalEmpSelect();
-      toast('پرسنل اضافه شد', 'success');
+      toast('✅ پرسنل اضافه شد', 'success');
     } catch (err) { toast('خطا: ' + err.message, 'error'); }
   });
 
