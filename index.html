@@ -83,12 +83,10 @@
     line-height: 1.6;
   }
   
-  /* اسکرول‌بار */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 3px; }
 
-  /* ============ کارت‌ها ============ */
   .card { 
     background: var(--card); 
     border-radius: var(--radius-lg); 
@@ -119,7 +117,6 @@
     border-radius: 2px;
   }
 
-  /* ============ فرم‌ها ============ */
   input, select, button, textarea { 
     width: 100%; 
     padding: 11px 14px; 
@@ -182,7 +179,6 @@
   }
   button.ghost:hover { background: var(--card-hover); box-shadow: none; transform: none; }
 
-  /* ============ ساعت زنده ============ */
   .clock-container {
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
     border-radius: var(--radius-lg);
@@ -228,7 +224,6 @@
     font-weight: 500;
   }
 
-  /* ============ تب‌ها ============ */
   .tabs { 
     display: flex; 
     gap: 6px; 
@@ -278,7 +273,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ============ چیپ ============ */
   .chip { 
     display: inline-flex; 
     align-items: center;
@@ -294,7 +288,6 @@
   
   body.dark .chip { background: rgba(129, 140, 248, 0.15); color: var(--primary-light); }
 
-  /* ============ رکوردها ============ */
   .record-item { 
     background: var(--card-hover); 
     border-radius: var(--radius-md); 
@@ -310,16 +303,6 @@
     overflow: hidden;
   }
   
-  .record-item::before {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: inherit;
-  }
-  
   .record-item:hover { transform: translateX(-2px); box-shadow: var(--shadow-sm); }
   .record-item.out { border-right-color: var(--danger); }
   .record-item.leave { border-right-color: var(--warning); background: rgba(245, 158, 11, 0.05); }
@@ -330,7 +313,6 @@
   .record-content strong { font-size: 14px; color: var(--text); display: block; margin-bottom: 2px; }
   .record-item .meta { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-  /* ============ دکمه‌های آیکون ============ */
   .action-btns { display: flex; gap: 6px; align-items: center; }
   
   .btn-icon { 
@@ -357,7 +339,6 @@
   
   body.dark .btn-icon.edit { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
 
-  /* ============ جعبه جمع ============ */
   .total-box { 
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(129, 140, 248, 0.05));
     border: 1.5px dashed var(--primary-light);
@@ -371,7 +352,6 @@
   }
   .total-box strong { color: var(--primary); font-size: 16px; font-weight: 800; }
 
-  /* ============ کارت پرسنل ============ */
   .employee-card { 
     background: var(--card);
     border: 1px solid var(--border); 
@@ -414,7 +394,6 @@
   
   .stat-item strong { color: var(--primary); font-size: 13px; }
 
-  /* ============ آیتم شعبه ============ */
   .branch-item { 
     display: flex; 
     justify-content: space-between; 
@@ -438,7 +417,6 @@
     min-width: 0;
   }
 
-  /* ============ جزئیات ============ */
   details { margin-top: 8px; }
   summary { 
     cursor: pointer; 
@@ -454,7 +432,6 @@
   summary:hover { color: var(--primary-dark); }
   summary::marker { color: var(--primary); }
 
-  /* ============ خالی ============ */
   .empty { 
     text-align: center; 
     color: var(--muted); 
@@ -468,7 +445,6 @@
   
   .empty svg { width: 48px; height: 48px; opacity: 0.4; }
 
-  /* ============ پیام‌های وضعیت ============ */
   #bootMsg { 
     background: linear-gradient(135deg, #fef3c7, #fde68a);
     color: #92400e; 
@@ -502,7 +478,6 @@
     50% { opacity: 0.85; }
   }
 
-  /* ============ مودال ============ */
   .modal-overlay { 
     position: fixed; 
     top: 0; left: 0; right: 0; bottom: 0; 
@@ -546,7 +521,6 @@
   .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
   .modal-actions button { margin: 0; flex: 1; }
 
-  /* ============ تقویم ============ */
   .calendar-row { 
     display: flex; 
     justify-content: space-between; 
@@ -563,9 +537,9 @@
   .calendar-row:last-child { border-bottom: none; }
   .calendar-row:hover { background: var(--card-hover); }
   
-  .calendar-row .day-info { display: flex; flex-direction: column; gap: 3px; }
+  .calendar-row .day-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
   .calendar-row .day-info strong { font-size: 13px; font-weight: 600; }
-  .calendar-row .status { font-size: 11px; margin-top: 2px; }
+  .calendar-row .status { font-size: 11px; margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
   
   .calendar-row.status-present { background: rgba(16, 185, 129, 0.08); border-right: 3px solid var(--success); }
   .calendar-row.status-leave { background: rgba(245, 158, 11, 0.08); border-right: 3px solid var(--warning); }
@@ -594,7 +568,6 @@
 
   .search-input { background: var(--card-hover); border-color: var(--border); }
 
-  /* ============ Toast ============ */
   #toastContainer { 
     position: fixed; 
     top: 16px; 
@@ -633,7 +606,6 @@
     to { transform: translateY(0); opacity: 1; } 
   }
 
-  /* ============ هدر اکشن‌ها ============ */
   .header-actions { 
     display: flex; 
     gap: 8px; 
@@ -661,7 +633,6 @@
     margin: 0;
   }
 
-  /* ============ PIN ============ */
   #pinScreen { 
     position: fixed; 
     inset: 0; 
@@ -736,7 +707,6 @@
   
   .pin-error { color: var(--danger); font-size: 12px; margin-top: 12px; min-height: 18px; font-weight: 600; }
 
-  /* ============ داشبورد ============ */
   .dash-grid { 
     display: grid; 
     grid-template-columns: repeat(2, 1fr); 
@@ -773,7 +743,6 @@
   .dash-card .value.red { color: var(--danger); }
   .dash-card .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
-  /* ============ تنظیمات ============ */
   .settings-row { 
     display: flex; 
     justify-content: space-between; 
@@ -792,7 +761,6 @@
     accent-color: var(--primary);
   }
 
-  /* ============ FAB ============ */
   .fab-container {
     position: fixed;
     bottom: 20px;
@@ -858,7 +826,6 @@
   .fab-item:hover { transform: translateX(-4px); box-shadow: var(--shadow-lg); }
   .fab-item svg { width: 18px; height: 18px; color: var(--primary); }
 
-  /* ============ استایل تقویم شمسی ============ */
   .datepicker-plot-area { 
     font-family: 'Vazirmatn', Tahoma, sans-serif !important; 
     border-radius: var(--radius-md) !important;
@@ -866,7 +833,6 @@
   }
   .datepicker-day-view .table-days td span { font-size: 14px; }
 
-  /* ============ ریسپانسیو ============ */
   @media (max-width: 480px) {
     body { padding: 8px; }
     .card { padding: 14px; border-radius: var(--radius-md); }
@@ -884,7 +850,6 @@
     body { max-width: 720px; margin: 0 auto; }
   }
 
-  /* ============ Spinner ============ */
   .spinner {
     display: inline-block;
     width: 16px;
@@ -900,7 +865,6 @@
 </head>
 <body>
 
-<!-- ============ PIN Screen ============ -->
 <div id="pinScreen">
   <div class="pin-box">
     <h2>🔐 ورود به سیستم</h2>
@@ -922,7 +886,6 @@
 <div id="bootMsg">در حال راه‌اندازی...</div>
 <div id="offlineBanner">⚠️ اینترنت قطع است. ورود آفلاین فعال است.</div>
 
-<!-- ============ Edit Modal ============ -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ ویرایش زمان تردد</h3>
@@ -938,7 +901,6 @@
   </div>
 </div>
 
-<!-- ============ Calendar Edit Modal ============ -->
 <div class="modal-overlay" id="calendarEditModal">
   <div class="modal-box">
     <h3 id="calModalTitle">ویرایش روز</h3>
@@ -970,7 +932,6 @@
   </div>
 </div>
 
-<!-- ============ Employee Edit Modal ============ -->
 <div class="modal-overlay" id="empEditModal">
   <div class="modal-box">
     <h3>✏️ ویرایش اطلاعات پرسنل</h3>
@@ -986,7 +947,6 @@
   </div>
 </div>
 
-<!-- ============ Settings Modal ============ -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal-box">
     <h3>⚙️ تنظیمات سیستم</h3>
@@ -1021,7 +981,6 @@
   </div>
 </div>
 
-<!-- ============ Header ============ -->
 <div class="header-actions">
   <div class="brand">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1037,7 +996,6 @@
   </div>
 </div>
 
-<!-- ============ Tabs ============ -->
 <div class="tabs">
   <div class="tab active" data-tab="attendance">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1065,7 +1023,6 @@
   </div>
 </div>
 
-<!-- ============ Attendance Section ============ -->
 <div class="section active" id="sec-attendance">
   <div class="clock-container">
     <div class="date-display" id="todayDate">---</div>
@@ -1094,7 +1051,6 @@
   </div>
 </div>
 
-<!-- ============ Dashboard Section ============ -->
 <div class="section" id="sec-dashboard">
   <div class="card">
     <h2>📊 داشبورد آماری</h2>
@@ -1139,7 +1095,6 @@
   </div>
 </div>
 
-<!-- ============ Calendar Section ============ -->
 <div class="section" id="sec-calendar">
   <div class="card">
     <h2>📅 تقویم ماهانه</h2>
@@ -1170,7 +1125,6 @@
   </div>
 </div>
 
-<!-- ============ Employees Section ============ -->
 <div class="section" id="sec-employees">
   <div class="card">
     <h2>➕ افزودن پرسنل جدید</h2>
@@ -1184,7 +1138,6 @@
   </div>
 </div>
 
-<!-- ============ Branches Section ============ -->
 <div class="section" id="sec-branches">
   <div class="card">
     <h2>➕ افزودن شعبه جدید</h2>
@@ -1197,7 +1150,6 @@
   </div>
 </div>
 
-<!-- ============ Reports Section ============ -->
 <div class="section" id="sec-reports">
   <div class="card">
     <h2>📊 گزارش‌ها</h2>
@@ -1229,7 +1181,6 @@
   </div>
 </div>
 
-<!-- ============ FAB ============ -->
 <div class="fab-container" id="fabContainer">
   <div class="fab-menu">
     <div class="fab-item" onclick="quickCheckIn()">
@@ -1270,7 +1221,6 @@ const app = { ready:false, db:null, branches:[], employees:[], settings:{...DEFA
 window._reportStartDate = null;
 window._reportEndDate = null;
 
-// ---------- Toast ----------
 function toast(msg, type='info', duration=3000) {
   const c = document.getElementById('toastContainer');
   if (!c) return;
@@ -1499,7 +1449,6 @@ function saveSettings() {
   if (document.getElementById('sec-dashboard').classList.contains('active')) loadDashboard();
 }
 
-// ---------- PIN / Auth ----------
 let pinBuffer = '';
 let pinResolve = null;
 
@@ -1733,8 +1682,16 @@ async function loadCalendar() {
   const jm = parseInt(document.getElementById('calMonthSelect').value);
   const jy = parseInt(document.getElementById('calYearSelect').value);
 
-  if (!empId) { el.innerHTML = '<div class="empty">ابتدا پرسنل را انتخاب کنید</div>'; summaryEl.style.display = 'none'; return; }
-  if (!navigator.onLine) { el.innerHTML = '<div class="empty" style="color:var(--danger);">برای مشاهده تقویم به اینترنت نیاز است.</div>'; summaryEl.style.display = 'none'; return; }
+  if (!empId) { 
+    el.innerHTML = '<div class="empty">ابتدا پرسنل را انتخاب کنید</div>'; 
+    summaryEl.style.display = 'none'; 
+    return; 
+  }
+  if (!navigator.onLine) { 
+    el.innerHTML = '<div class="empty" style="color:var(--danger);">برای مشاهده تقویم به اینترنت نیاز است.</div>'; 
+    summaryEl.style.display = 'none'; 
+    return; 
+  }
   
   el.innerHTML = '<div class="empty"><span class="spinner" style="border-top-color:var(--primary);"></span> در حال بارگذاری...</div>';
 
@@ -1746,7 +1703,14 @@ async function loadCalendar() {
   const { data: attData, error } = await app.db.from('attendance')
     .select('*').eq('employee_id', emp.id).gte('work_date', startStr).lte('work_date', endStr);
 
-  if (error) { el.innerHTML = '<div class="empty" style="color:var(--danger);">خطا: ' + error.message + '</div>'; summaryEl.style.display = 'none'; return; }
+  if (error) { 
+    el.innerHTML = '<div class="empty" style="color:var(--danger);">خطا: ' + error.message + '</div>'; 
+    summaryEl.style.display = 'none'; 
+    return; 
+  }
+
+  // ✅ گرفتن نام شعبه‌ها برای نمایش در کنار هر روز
+  const brMap = await getBranchNameMap((attData || []).map(r => r.branch_id));
 
   const recordsByDate = {};
   (attData || []).forEach(r => { if (!recordsByDate[r.work_date]) recordsByDate[r.work_date] = r; });
@@ -1754,8 +1718,12 @@ async function loadCalendar() {
   let totalMins = 0, leaveDays = 0, presentDays = 0;
   (attData || []).forEach(r => {
     if (r.status === 'leave') leaveDays++;
-    else if (r.check_in && r.check_out) { totalMins += minutesBetween(r.check_in, r.check_out); presentDays++; }
+    else if (r.check_in && r.check_out) { 
+      totalMins += minutesBetween(r.check_in, r.check_out); 
+      presentDays++; 
+    }
   });
+  
   const hm = minutesToHM(totalMins);
   document.getElementById('calSummaryWork').textContent = faNum(hm.h);
   document.getElementById('calSummaryLeave').textContent = faNum(leaveDays);
@@ -1764,6 +1732,7 @@ async function loadCalendar() {
 
   const todayStr = getLocalDateStr();
   let html = '';
+  
   for (let d = 1; d <= daysCount; d++) {
     const gDate = getGregorianFromJalali(jy, jm, d);
     const gDateStr = getLocalDateStr(gDate);
@@ -1774,17 +1743,29 @@ async function loadCalendar() {
     let rowClass = 'status-empty';
 
     if (rec) {
+      // ✅ نمایش نام شعبه در کنار وضعیت
+      const brName = brMap.get(rec.branch_id);
+      const branchChip = brName 
+        ? ` <span class="chip" style="font-size:10px; padding:2px 6px; margin-right:4px;">🏢 ${brName}</span>` 
+        : '';
+      
       if (rec.status === 'leave') {
-        statusHtml = '<span class="status" style="color:var(--warning); font-weight:bold;">🌴 مرخصی</span>'; rowClass = 'status-leave';
+        statusHtml = `<span class="status" style="color:var(--warning); font-weight:bold;">🌴 مرخصی</span>${branchChip}`; 
+        rowClass = 'status-leave';
       } else {
         const inT = rec.check_in ? timeFa(rec.check_in) : '---';
         const outT = rec.check_out ? timeFa(rec.check_out) : '---';
-        const late = rec.check_in && isLate(rec.check_in) ? ' <span style="color:#f97316;">(تأخیر)</span>' : '';
-        statusHtml = `<span class="status" style="color:var(--success); font-weight:600;">ورود: ${inT} | خروج: ${outT}${late}</span>`; rowClass = 'status-present';
+        const late = rec.check_in && isLate(rec.check_in) 
+          ? ' <span style="color:#f97316;">(تأخیر)</span>' 
+          : '';
+        statusHtml = `<span class="status" style="color:var(--success); font-weight:600;">ورود: ${inT} | خروج: ${outT}${late}${branchChip}</span>`; 
+        rowClass = 'status-present';
       }
     }
+    
     const dateStr = `${jy}/${String(jm).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     const isToday = gDateStr === todayStr;
+    
     html += `<div class="calendar-row ${rowClass} ${isToday ? 'today' : ''}">
       <div class="day-info">
         <strong>${dayName} ${faNum(d)}${isToday ? ' <span style="color:var(--primary); font-size:11px;">(امروز)</span>' : ''}</strong>
